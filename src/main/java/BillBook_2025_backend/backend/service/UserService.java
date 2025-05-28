@@ -17,7 +17,7 @@ public class UserService {
             throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
         }
 
-        User newUser = new User(user.getUserId(), user.getPassword(), user.getEmail(), user.getUsername());
+        User newUser = new User(user.getUserId(), user.getPassword(), user.getEmail(), user.getUserName());
         return userRepository.save(newUser);
     }
 
