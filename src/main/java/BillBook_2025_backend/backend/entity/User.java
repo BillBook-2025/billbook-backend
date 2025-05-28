@@ -12,14 +12,14 @@ public class User {
     private String password;
     private String email;
     private double temperature;
-    private boolean isphoneverified;
-    private String username;
+    private boolean isPhoneVerified;
+    private String userName;
 
     public User(String userId, String password, String email, String username) {
         this.userId = userId;
         this.password = password;
         this.email = email;
-        this.username = username;
+        this.userName = username;
         this.temperature = 36.5;
 
     }

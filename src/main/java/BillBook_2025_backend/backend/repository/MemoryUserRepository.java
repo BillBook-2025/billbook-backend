@@ -37,10 +37,10 @@ public class MemoryUserRepository implements UserRepository{
     public User update(Long id, User user) {
         User oldUser = store.get(id);
         oldUser.setEmail(user.getEmail());
-        oldUser.setUsername(user.getUsername());
+        oldUser.setUserName(user.getUserName());
         oldUser.setPassword(user.getPassword());
         oldUser.setTemperature(user.getTemperature());
-        oldUser.setIsphoneverified(user.isIsphoneverified());
+        oldUser.setPhoneVerified(user.isPhoneVerified());
 
         return oldUser;
     }
