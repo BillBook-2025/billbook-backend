@@ -35,3 +35,36 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+### Python ###
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+*.env
+
+# pipenv / poetry
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# PyCharm
+.idea/
+*.pyc
