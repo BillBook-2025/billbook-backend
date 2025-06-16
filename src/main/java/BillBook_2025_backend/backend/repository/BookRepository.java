@@ -8,6 +8,7 @@ import java.util.Optional;
 public interface BookRepository {
 
     Book save(Book book);
+    Optional<Book> findById(Long id);
     List<Book> findByUserId(String userId); //빌린 사람 아이디로 게시물 찾기
     List<Book> findByBorrowId(String borrowId);  //빌려준 사람 아이디로 게시물 찾기
     List<Book> findByTitle(String title);
