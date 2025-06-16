@@ -12,7 +12,6 @@ public class User {
     private String password;
     private String email;
     private double temperature;
-    private boolean isPhoneVerified;
     private String userName;
 
     public User(String userId, String password, String email, String username) {
