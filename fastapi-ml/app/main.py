@@ -1,12 +1,11 @@
 from fastapi import FastAPI
+from app.api.v1 import predict
 
 app = FastAPI()
+
+# router 등록
+app.include_router(predict.router)
 
 @app.get("/")
 def read_root():
     return {"message": "Hello FastAPI!"}
-
-@app.post("/predict")
-def predict(data: dict):
-    # 여기에 PyTorch 모델 예측 코드 들어감
-    return {"result": "dummy result"}
