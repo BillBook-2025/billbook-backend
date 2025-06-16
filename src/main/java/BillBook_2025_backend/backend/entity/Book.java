@@ -29,7 +29,4 @@ public class Book {
     private Long total;
     private LocalDateTime returnTime;
 
-    private final void setId(Long id) {
-        this.id = id;
-    }
 }
