@@ -95,7 +95,7 @@ public class BookService {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
             if (!bookRepository.findById(bookId).get().getUserId().equals(user.getUserId())) { //판매자 아이디가 아닐 경우
-                throw new
+                throw new IllegalArgumentException("판매자 아이디가 일치하지 않습니다");
             } else {
                 return bookRepository.update(bookId, book);
             }
