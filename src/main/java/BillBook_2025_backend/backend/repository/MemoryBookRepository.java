@@ -13,7 +13,8 @@ public class MemoryBookRepository implements BookRepository {
     private Long nextId = 1L;
 
     public Book save(Book book){
-        store.put(nextId++, book);
+        book.setId(nextId++);
+        store.put(book.getId(), book);
         return book;
     }
 
@@ -52,6 +53,20 @@ public class MemoryBookRepository implements BookRepository {
     public List<Book> findAll() {
         List<Book> books = store.values().stream().toList();
         return books;
+    }
+
+    public Book update(Long id) {
+        Book returnedBook = store.get(id);
+        returnedBook.setStatus("반납");
+        store.put(id, returnedBook);
+        return returnedBook;
+    }
+
+    public Book update(Long id, String borrowId) { //대출한 사람 아이디 삽입
+        Book bookToUpdate = store.get(id);
+        bookToUpdate.setBorrowId(borrowId);
+        store.put(id, bookToUpdate);
+        return bookToUpdate;
     }
 
 
