@@ -17,6 +17,7 @@ public class MemoryBookRepository implements BookRepository {
         return book;
     }
 
+
     public Optional<Book> findById(Long id) {
         return Optional.ofNullable(store.get(id));
     }
