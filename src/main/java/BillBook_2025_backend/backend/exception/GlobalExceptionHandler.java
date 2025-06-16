@@ -17,5 +17,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleUnauthorized(UnauthorizedException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
+
+
 }
 
