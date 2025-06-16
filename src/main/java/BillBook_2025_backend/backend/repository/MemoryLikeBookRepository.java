@@ -13,7 +13,8 @@ public class MemoryLikeBookRepository implements LikeBookRepository {
     private Long nextId = 1L;
 
     public LikeBook save(LikeBook post) {
-        store.put(nextId++, post);
+        post.setId(nextId++);
+        store.put(post.getId(), post);
         return post;
     }
 

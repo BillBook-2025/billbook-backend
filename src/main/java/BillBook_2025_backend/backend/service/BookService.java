@@ -10,6 +10,7 @@ import BillBook_2025_backend.backend.repository.BookRepository;
 import BillBook_2025_backend.backend.repository.LikeBookRepository;
 import BillBook_2025_backend.backend.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,15 +49,15 @@ public class BookService {
     }
 
     public List<Book> findAllBooks(String userId) {
-        User user = userRepository.findByUserId(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 등록이 가능합니다."));
-        List<Book> bookList = bookRepository.findByUserId(user.getUserId());
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
+        List<Book> bookList = bookRepository.findAll();
         return bookList;
 
 
     }
 
     public Book getBookDetail(Long bookId, String userId) {
-        User user = userRepository.findByUserId(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 등록이 가능합니다."));
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
@@ -95,11 +96,50 @@ public class BookService {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
             if (!bookRepository.findById(bookId).get().getUserId().equals(user.getUserId())) { //판매자 아이디가 아닐 경우
-                throw new IllegalArgumentException("판매자 아이디가 일치하지 않습니다");
+                throw new AccessDeniedException("판매자만 수정할 수 있습니다");
             } else {
                 return bookRepository.update(bookId, book);
             }
 
+        }
+    }
+
+    public void borrow(Long bookId, String userId) {
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
+        if (bookRepository.findById(bookId).isEmpty()) {
+            throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
+        } else {
+            if (bookRepository.findById(bookId).get().getUserId().equals(user.getUserId())) {
+                throw new AccessDeniedException("직접 올린 게시물은 대출할 수 없습니다.");
+            } else {
+                bookRepository.update(bookId, userId);
+            }
+        }
+    }
+
+    public void delete(Long bookId, String userId) {
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
+        if (bookRepository.findById(bookId).isEmpty()) {
+            throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
+        } else {
+            if (!bookRepository.findById(bookId).get().getUserId().equals(user.getUserId())) {
+                throw new AccessDeniedException("판매자만 글을 삭제할 수 있습니다");
+            } else {
+                bookRepository.delete(bookId);
+            }
+        }
+    }
+
+    public void returnBook(Long bookId, String userId) {
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
+        if (bookRepository.findById(bookId).isEmpty()) {
+            throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
+        } else {
+            if (!bookRepository.findById(bookId).get().getUserId().equals(user.getUserId())) {
+                throw new AccessDeniedException("판매자만 반납완료를 처리할 수 있습니다");
+            } else {
+                bookRepository.update(bookId); //반납처리 완료
+            }
         }
     }
 }
