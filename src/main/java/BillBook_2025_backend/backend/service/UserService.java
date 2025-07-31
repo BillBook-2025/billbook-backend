@@ -2,12 +2,14 @@ package BillBook_2025_backend.backend.service;
 
 import BillBook_2025_backend.backend.entity.User;
 import BillBook_2025_backend.backend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
 
+    @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }

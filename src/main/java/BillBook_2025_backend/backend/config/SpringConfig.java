@@ -10,35 +10,18 @@ import javax.sql.DataSource;
 
 @Configuration
 public class SpringConfig {
-    private final DataSource dataSource;
 
-    public SpringConfig(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    @Bean
-    public UserRepository userRepository() {
-        return new MemoryUserRepository();
-    }
-
-    @Bean
-    public BookRepository bookRepository() {
-        return new MemoryBookRepository();
-    }
-
-    @Bean
-    public LikeBookRepository likePostRepository() {
-        return new MemoryLikeBookRepository();
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable() // Postman 같은 외부에서 POST 테스트할 수 있도록 CSRF 비활성화
-                .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/api/**").permitAll()  // 회원가입/로그인 API는 인증 없이 허용
-                        .anyRequest().authenticated()  // 그 외는 인증 필요
-                );
+                .csrf(csrf -> csrf.disable()) // CSRF 보호 비활성화 (필요시)
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll() // 모든 요청 허용
+                )
+                .formLogin(form -> form.disable()) // 로그인 폼 비활성화
+                .httpBasic(basic -> basic.disable()); // HTTP Basic 인증 비활성화
+
 
         return http.build();
     }
