@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class MemoryBookRepository implements BookRepository {
+public class MemoryBookRepository {
     private final Map<Long, Book> store = new HashMap<>();
     private Long nextId = 1L;
 
