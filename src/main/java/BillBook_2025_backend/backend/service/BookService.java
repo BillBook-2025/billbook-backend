@@ -76,7 +76,7 @@ public class BookService {
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            Optional<LikeBook> existing = likeBookRepository.findByBookIdAndId(bookId, userId);
+            Optional<LikeBook> existing = likeBookRepository.findByBookIdAndUserId(bookId, userId);
             if (existing.isPresent()) { //좋아요 취소
                 likeBookRepository.delete(existing.get());
             } else { //좋아요
