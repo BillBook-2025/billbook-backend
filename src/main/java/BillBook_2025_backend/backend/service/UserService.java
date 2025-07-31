@@ -2,12 +2,15 @@ package BillBook_2025_backend.backend.service;
 
 import BillBook_2025_backend.backend.entity.User;
 import BillBook_2025_backend.backend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
 
+    @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -26,7 +29,7 @@ public class UserService {
             throw new IllegalArgumentException("해당 유저가 존재하지 않습니다.");
         }
 
-        userRepository.delete(user.getId());
+        userRepository.delete(user);
     }
 
     public User login(User user) {
@@ -42,13 +45,13 @@ public class UserService {
         }
     }
 
+    @Transactional
     public void changePassword(String userId, String password, String confirmPassword) {
         if (!password.equals(confirmPassword)) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         } else {
             User user = userRepository.findByUserId(userId).get();
             user.setPassword(password);
-            userRepository.update(user.getId(), user);
         }
 
     }
