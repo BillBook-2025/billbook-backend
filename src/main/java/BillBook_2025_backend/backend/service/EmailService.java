@@ -2,6 +2,7 @@ package BillBook_2025_backend.backend.service;
 
 import BillBook_2025_backend.backend.entity.User;
 import BillBook_2025_backend.backend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -13,6 +14,7 @@ public class EmailService {
     private final UserRepository userRepository;
     private final JavaMailSender mailSender;
 
+    @Autowired
     public EmailService(JavaMailSender mailSender, UserRepository userRepository) {
         this.mailSender = mailSender;
         this.userRepository = userRepository;
