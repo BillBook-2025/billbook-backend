@@ -40,7 +40,6 @@ public class MemoryUserRepository implements UserRepository{
         oldUser.setUserName(user.getUserName());
         oldUser.setPassword(user.getPassword());
         oldUser.setTemperature(user.getTemperature());
-        oldUser.setPhoneVerified(user.isPhoneVerified());
 
         return oldUser;
     }

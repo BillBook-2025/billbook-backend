@@ -1,6 +1,6 @@
 package BillBook_2025_backend.backend.controller;
 
-import BillBook_2025_backend.backend.entity.AuthRequest;
+import BillBook_2025_backend.backend.dto.AuthRequest;
 import BillBook_2025_backend.backend.entity.User;
 import BillBook_2025_backend.backend.service.EmailService;
 import BillBook_2025_backend.backend.service.UserService;

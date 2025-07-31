@@ -1,4 +1,4 @@
-package BillBook_2025_backend.backend.entity;
+package BillBook_2025_backend.backend.dto;
 
 import lombok.Getter;
 import lombok.Setter;
