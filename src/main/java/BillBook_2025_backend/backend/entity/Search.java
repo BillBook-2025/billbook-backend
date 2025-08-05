@@ -14,6 +14,6 @@ public class Search {
     private LocalDateTime searchTime;
 
     @ManyToOne
-    private User user;
+    private Member member;
 
 }
