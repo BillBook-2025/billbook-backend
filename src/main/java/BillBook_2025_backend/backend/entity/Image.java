@@ -12,7 +12,7 @@ public class Image {
     private String url;
 
     @ManyToOne
-    private User user;
+    private Member member;
 
     @ManyToOne
     private Book book;

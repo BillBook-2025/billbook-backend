@@ -20,5 +20,5 @@ public class Message {
     private ChatRoom chatRoom;
 
     @ManyToOne
-    private User user;
+    private Member member;
 }

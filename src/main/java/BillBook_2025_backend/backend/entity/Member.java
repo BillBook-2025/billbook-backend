@@ -10,7 +10,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-public class User {
+public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -48,9 +48,9 @@ public class User {
 
 
 
-    protected User() {}
+    protected Member() {}
 
-    public User(String userId, String password, String email, String username) {
+    public Member(String userId, String password, String email, String username) {
         this.userId = userId;
         this.password = password;
         this.email = email;

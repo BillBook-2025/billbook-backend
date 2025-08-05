@@ -16,11 +16,11 @@ public class Payment {
 
     @ManyToOne
     @JoinColumn(name = "sender_id")
-    private User sender;
+    private Member sender;
 
     @ManyToOne
     @JoinColumn(name = "reciever_id")
-    private User receiver;
+    private Member receiver;
 
     @OneToOne
     private Book book;
