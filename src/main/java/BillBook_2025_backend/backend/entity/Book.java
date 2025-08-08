@@ -17,8 +17,8 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long userId;  //빌려준 사람
-    private Long borrowId;  //빌린 사람
+    private Long sellerId;  //빌려준 사람
+    private Long buyerId;  //빌린 사람
     private Long bookPoint;
     private String bookPic;  //자료형 나중에 체크
     private LocalDateTime time;
