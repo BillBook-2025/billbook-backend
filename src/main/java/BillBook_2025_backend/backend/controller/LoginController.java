@@ -1,6 +1,7 @@
 package BillBook_2025_backend.backend.controller;
 
 import BillBook_2025_backend.backend.dto.AuthRequest;
+import BillBook_2025_backend.backend.dto.DeleteMemberDto;
 import BillBook_2025_backend.backend.entity.Member;
 import BillBook_2025_backend.backend.service.EmailService;
 import BillBook_2025_backend.backend.service.UserService;
@@ -23,10 +24,10 @@ public class LoginController {
 
     @PostMapping("/api/auth/login")
     @ResponseBody
-    public Member login(@RequestBody Member member, HttpSession session) {
+    public ResponseEntity<Member> login(@RequestBody Member member, HttpSession session) {
         Member userlogin = userService.login(member);
         session.setAttribute("id", userlogin.getId());
-        return userlogin;
+        return ResponseEntity.ok(userlogin);
     }
 
     @DeleteMapping("/api/auth/login")
@@ -59,14 +60,20 @@ public class LoginController {
 
     @PostMapping("/api/auth/signup")
     @ResponseBody
-    public Member signup(@RequestBody Member member) {
-        return userService.signup(member);
+    public ResponseEntity<String> signup(@RequestBody Member member) {
+        userService.signup(member);
+        return ResponseEntity.ok("회원가입이 완료되었습니다.");
     }
 
     @DeleteMapping("/api/auth/signup")
     @ResponseBody
-    public void deleteUser(@RequestBody Member member) {
-        userService.delete(member);
+    public ResponseEntity<String> deleteUser(@RequestBody DeleteMemberDto request, HttpSession session) {
+        Long userId = (Long) session.getAttribute("id");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+        userService.delete(request, userId);
+        return ResponseEntity.ok("회원탈퇴를 성공하였습니다.");
     }
 
 

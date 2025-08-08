@@ -12,6 +12,7 @@ public interface LikeBookRepository extends JpaRepository<LikeBook, Long> {
 
     LikeBook save(LikeBook likeBook);
     Optional<LikeBook> findById(Long id);
+    List<LikeBook> findByUserId(Long userId);
     Optional<LikeBook> findByBookIdAndUserId(Long bookId, Long userId);
 
     List<LikeBook> findByBookId(Long bookId);
