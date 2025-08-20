@@ -1,10 +1,7 @@
 package BillBook_2025_backend.backend.controller;
 
-import BillBook_2025_backend.backend.dto.BookItem;
-import BillBook_2025_backend.backend.dto.BookPostRequestDto;
-import BillBook_2025_backend.backend.dto.PictureUrl;
+import BillBook_2025_backend.backend.dto.*;
 import BillBook_2025_backend.backend.entity.Book;
-import BillBook_2025_backend.backend.dto.LikeBookResponseDto;
 import BillBook_2025_backend.backend.exception.UnauthorizedException;
 import BillBook_2025_backend.backend.service.ApiSearchingBook;
 import BillBook_2025_backend.backend.service.BookService;
@@ -12,13 +9,11 @@ import BillBook_2025_backend.backend.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 public class BookController {
@@ -106,10 +101,18 @@ public class BookController {
     }
 
     @PostMapping("/api/books/{bookId}/upload-images")
-    public ResponseEntity<PictureUrl> uploadImages(@PathVariable Long book_id, HttpSession session, @RequestPart List<MultipartFile> files) throws IOException {
+    public ResponseEntity<PictureDtoList> uploadImages(@PathVariable Long book_id, HttpSession session, @RequestPart List<MultipartFile> files) throws IOException {
         Long userId = (Long) session.getAttribute("id");
         userService.checkBookSeller(userId, book_id);
-        PictureUrl pictureUrl = bookService.uploadImages(book_id, userId, files);
-        return ResponseEntity.ok(pictureUrl);
+        PictureDtoList pictureDtoList = bookService.uploadImages(book_id, userId, files);
+        return ResponseEntity.ok(pictureDtoList);
+    }
+
+    @DeleteMapping("/api/books/{bookId}/upload-images")
+    public ResponseEntity<String> deleteImages(@PathVariable Long book_id, HttpSession session, @RequestBody PictureDto request) {
+        Long userId = (Long) session.getAttribute("id");
+        userService.checkBookSeller(userId, book_id);
+        bookService.deleteImages(request);
+
     }
 }

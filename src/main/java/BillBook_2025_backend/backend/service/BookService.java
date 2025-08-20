@@ -1,13 +1,15 @@
 package BillBook_2025_backend.backend.service;
 
 import BillBook_2025_backend.backend.dto.BookPostRequestDto;
-import BillBook_2025_backend.backend.dto.PictureUrl;
+import BillBook_2025_backend.backend.dto.PictureDto;
+import BillBook_2025_backend.backend.dto.PictureDtoList;
 import BillBook_2025_backend.backend.entity.*;
 import BillBook_2025_backend.backend.exception.BookNotFoundException;
 import BillBook_2025_backend.backend.exception.UnauthorizedException;
 import BillBook_2025_backend.backend.repository.BookRepository;
 import BillBook_2025_backend.backend.repository.LikeBookRepository;
 import BillBook_2025_backend.backend.repository.MemberRepository;
+import BillBook_2025_backend.backend.repository.PictureRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,13 +28,15 @@ public class BookService {
     private final MemberRepository memberRepository;
     private final LikeBookRepository likeBookRepository;
     private final S3UploadService s3UploadService;
+    private final PictureRepository pictureRepository;
 
     @Autowired
-    public BookService(BookRepository bookRepository, MemberRepository memberRepository, LikeBookRepository likeBookRepository, S3UploadService s3UploadService) {
+    public BookService(BookRepository bookRepository, MemberRepository memberRepository, LikeBookRepository likeBookRepository, S3UploadService s3UploadService, PictureRepository pictureRepository) {
         this.bookRepository = bookRepository;
         this.memberRepository = memberRepository;
         this.likeBookRepository = likeBookRepository;
         this.s3UploadService = s3UploadService;
+        this.pictureRepository = pictureRepository;
     }
 
     public void register(BookPostRequestDto dto, Long userId) {
@@ -168,16 +172,24 @@ public class BookService {
     }
 
     @Transactional
-    public PictureUrl uploadImages(Long bookId, Long userId, List<MultipartFile> files) throws IOException {
+    public PictureDtoList uploadImages(Long bookId, Long userId, List<MultipartFile> files) throws IOException {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new EntityNotFoundException("해당 게시물을 찾을 수 없습니다."));
-        List<String> pictureUrls = new ArrayList<>();
+        List<PictureDto> pictureDtos = new ArrayList<>();
         for (MultipartFile file : files) {
-            String url = s3UploadService.saveFile(file);
-            Picture picture = new Picture(file.getOriginalFilename(), url, book);
+            PictureDto request = s3UploadService.saveFile(file);
+            Picture picture = new Picture(request.getFilename(), request.getUrl(), book);
             book.getPicture().add(picture);
-            pictureUrls.add(url);
+            pictureDtos.add(request);
         }
-        PictureUrl response = new PictureUrl(pictureUrls);
+        PictureDtoList response = new PictureDtoList(pictureDtos);  //파일명도 줘야하나
         return response;
+    }
+
+    public void deleteImages(PictureDto request) {
+        String filename = request.getFilename();
+        Picture picture = pictureRepository.findByFilename(filename)
+                .orElseThrow(() -> new EntityNotFoundException(filename + "가 존재하지 않습니다."));
+        pictureRepository.delete(picture);
+        s3UploadService.deleteImage(filename);
     }
 }
