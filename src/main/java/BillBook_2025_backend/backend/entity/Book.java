@@ -1,14 +1,14 @@
 package BillBook_2025_backend.backend.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -20,7 +20,6 @@ public class Book {
     private Long sellerId;  //빌려준 사람
     private Long buyerId;  //빌린 사람
     private Long bookPoint;
-    private String bookPic;  //자료형 나중에 체크
     private LocalDateTime time;
     private String location; //자료형 나중에 체크
     private String content;
@@ -34,5 +33,9 @@ public class Book {
     private String description;
     private Long total;
     private LocalDateTime returnTime;
+
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Picture> picture = new ArrayList<>();
 
 }

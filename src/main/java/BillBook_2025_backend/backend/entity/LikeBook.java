@@ -1,11 +1,10 @@
 package BillBook_2025_backend.backend.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.catalina.User;
+
 @Entity
 @Getter
 @Setter
@@ -13,15 +12,18 @@ public class LikeBook {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long bookId;
-    private Long userId;
+
+    @ManyToOne
+    private Book book;
+
+    @ManyToOne
+    private Member member;
 
     protected LikeBook() {}
 
-    public LikeBook(Long bookId, Long userId) {
-        this.bookId = bookId;
-        this.userId = userId;
+    public LikeBook(Book book, Member member) {
+        this.book = book;
+        this.member = member;
     }
-
 
 }

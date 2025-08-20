@@ -16,7 +16,7 @@ public class ProfileDto {
     public ProfileDto(Member member, Long buyNum, Long sellNum) {
         this.username = member.getUserName();
         this.temperature = member.getTemperature();
-        this.ProfilePic = member.getImage().getUrl();
+        this.ProfilePic = member.getPicture().getUrl();
         this.buyNum = buyNum;
         this.sellNum = sellNum;
     }

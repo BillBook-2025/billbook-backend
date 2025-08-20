@@ -115,7 +115,7 @@ public class UserService {
         List<BookResponse> bookList = new ArrayList<>();
         List<LikeBook> byUserId = likeBookRepository.findByUserId(id);
         for (LikeBook likeBook : byUserId) {
-            Book book = bookRepository.findById(likeBook.getBookId()).orElseThrow(() -> new EntityNotFoundException("해당 거래글이 존재하지 않습니다."));
+            Book book = bookRepository.findById(likeBook.getBook().getId()).orElseThrow(() -> new EntityNotFoundException("해당 거래글이 존재하지 않습니다."));
             BookResponse bookResponse = new BookResponse(book);
             bookList.add(bookResponse);
         }
@@ -195,5 +195,13 @@ public class UserService {
         Long sellNum = (long) bookRepository.findBySellerId(userId).size();
         DealHistory response = new DealHistory(buyNum + sellNum);
         return response;
+    }
+
+    public void checkBookSeller(Long userId, Long bookId) {
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new EntityNotFoundException("해당 거래글을 찾을 수 없습니다."));
+        Long sellerId = book.getSellerId();
+        if (sellerId.equals(userId)) {
+            throw new AccessDeniedException("접근권한이 없습니다.");
+        }
     }
 }

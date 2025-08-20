@@ -1,20 +1,22 @@
 package BillBook_2025_backend.backend.service;
 
 import BillBook_2025_backend.backend.dto.BookPostRequestDto;
-import BillBook_2025_backend.backend.entity.Book;
-import BillBook_2025_backend.backend.entity.BookStatus;
-import BillBook_2025_backend.backend.entity.LikeBook;
-import BillBook_2025_backend.backend.entity.Member;
+import BillBook_2025_backend.backend.dto.PictureUrl;
+import BillBook_2025_backend.backend.entity.*;
 import BillBook_2025_backend.backend.exception.BookNotFoundException;
 import BillBook_2025_backend.backend.exception.UnauthorizedException;
 import BillBook_2025_backend.backend.repository.BookRepository;
 import BillBook_2025_backend.backend.repository.LikeBookRepository;
 import BillBook_2025_backend.backend.repository.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,12 +25,14 @@ public class BookService {
     private final BookRepository bookRepository;
     private final MemberRepository memberRepository;
     private final LikeBookRepository likeBookRepository;
+    private final S3UploadService s3UploadService;
 
     @Autowired
-    public BookService(BookRepository bookRepository, MemberRepository memberRepository, LikeBookRepository likeBookRepository) {
+    public BookService(BookRepository bookRepository, MemberRepository memberRepository, LikeBookRepository likeBookRepository, S3UploadService s3UploadService) {
         this.bookRepository = bookRepository;
         this.memberRepository = memberRepository;
         this.likeBookRepository = likeBookRepository;
+        this.s3UploadService = s3UploadService;
     }
 
     public void register(BookPostRequestDto dto, Long userId) {
@@ -79,7 +83,8 @@ public class BookService {
             if (existing.isPresent()) { //좋아요 취소
                 likeBookRepository.delete(existing.get());
             } else { //좋아요
-                LikeBook likeBook = new LikeBook(bookId, userId);
+                Book book = bookRepository.findById(bookId).get();
+                LikeBook likeBook = new LikeBook(book, member);
                 likeBookRepository.save(likeBook);
             }
             return likeBookRepository.countByBookId(bookId);
@@ -160,5 +165,19 @@ public class BookService {
                 bookRepository.updateStatus(bookId, BookStatus.RETURNED); //반납처리 완료
             }
         }
+    }
+
+    @Transactional
+    public PictureUrl uploadImages(Long bookId, Long userId, List<MultipartFile> files) throws IOException {
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new EntityNotFoundException("해당 게시물을 찾을 수 없습니다."));
+        List<String> pictureUrls = new ArrayList<>();
+        for (MultipartFile file : files) {
+            String url = s3UploadService.saveFile(file);
+            Picture picture = new Picture(file.getOriginalFilename(), url, book);
+            book.getPicture().add(picture);
+            pictureUrls.add(url);
+        }
+        PictureUrl response = new PictureUrl(pictureUrls);
+        return response;
     }
 }

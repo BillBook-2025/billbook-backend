@@ -2,28 +2,35 @@ package BillBook_2025_backend.backend.controller;
 
 import BillBook_2025_backend.backend.dto.BookItem;
 import BillBook_2025_backend.backend.dto.BookPostRequestDto;
+import BillBook_2025_backend.backend.dto.PictureUrl;
 import BillBook_2025_backend.backend.entity.Book;
 import BillBook_2025_backend.backend.dto.LikeBookResponseDto;
 import BillBook_2025_backend.backend.exception.UnauthorizedException;
 import BillBook_2025_backend.backend.service.ApiSearchingBook;
 import BillBook_2025_backend.backend.service.BookService;
+import BillBook_2025_backend.backend.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class BookController {
     private final BookService bookService;
     private final ApiSearchingBook apiSearchingBook;
+    private final UserService userService;
 
     @Autowired
-    public BookController(BookService bookService, ApiSearchingBook apiSearchingBook) {
+    public BookController(BookService bookService, ApiSearchingBook apiSearchingBook, UserService userService) {
         this.bookService = bookService;
         this.apiSearchingBook = apiSearchingBook;
+        this.userService = userService;
     }
 
     @GetMapping("/api/books")
@@ -96,5 +103,13 @@ public class BookController {
         Long userId = (Long) session.getAttribute("id");
         bookService.returnBook(book_id, userId);
         return ResponseEntity.ok("반납처리가 완료되었습니다.");
+    }
+
+    @PostMapping("/api/books/{bookId}/upload-images")
+    public ResponseEntity<PictureUrl> uploadImages(@PathVariable Long book_id, HttpSession session, @RequestPart List<MultipartFile> files) throws IOException {
+        Long userId = (Long) session.getAttribute("id");
+        userService.checkBookSeller(userId, book_id);
+        PictureUrl pictureUrl = bookService.uploadImages(book_id, userId, files);
+        return ResponseEntity.ok(pictureUrl);
     }
 }
