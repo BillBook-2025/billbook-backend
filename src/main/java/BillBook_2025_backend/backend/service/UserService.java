@@ -1,10 +1,7 @@
 package BillBook_2025_backend.backend.service;
 
 import BillBook_2025_backend.backend.dto.*;
-import BillBook_2025_backend.backend.entity.Book;
-import BillBook_2025_backend.backend.entity.Follow;
-import BillBook_2025_backend.backend.entity.LikeBook;
-import BillBook_2025_backend.backend.entity.Member;
+import BillBook_2025_backend.backend.entity.*;
 import BillBook_2025_backend.backend.repository.BookRepository;
 import BillBook_2025_backend.backend.repository.FollowRepository;
 import BillBook_2025_backend.backend.repository.LikeBookRepository;
@@ -14,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,13 +23,15 @@ public class UserService {
     private final LikeBookRepository likeBookRepository;
     private final BookRepository bookRepository;
     private final FollowRepository followRepository;
+    private final S3UploadService s3UploadService;
 
     @Autowired
-    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository) {
+    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository, S3UploadService s3UploadService) {
         this.memberRepository = memberRepository;
         this.likeBookRepository = likeBookRepository;
         this.bookRepository = bookRepository;
         this.followRepository = followRepository;
+        this.s3UploadService = s3UploadService;
     }
 
     public Member signup(Member member) {
@@ -202,6 +203,24 @@ public class UserService {
         Long sellerId = book.getSellerId();
         if (sellerId.equals(userId)) {
             throw new AccessDeniedException("접근권한이 없습니다.");
+        }
+    }
+
+    @Transactional
+    public PictureDto uploadProfileImage(Long userId, MultipartFile file) throws IOException {
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저는 존재하지 않습니다."));
+        if (member.getPicture() == null) {  //프로필 사진이 없는 경우
+            PictureDto pictureDto = s3UploadService.saveFile(file);
+            Picture picture = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), member);
+            member.setPicture(picture);
+            return pictureDto;
+        } else { //프로필 사진이 이미 존재하는 경우 교체
+            Picture propfilePicture = member.getPicture();
+            s3UploadService.deleteImage(propfilePicture.getFilename());
+            PictureDto pictureDto = s3UploadService.saveFile(file);
+            Picture picture = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), member);
+            member.setPicture(picture);
+            return pictureDto;
         }
     }
 }

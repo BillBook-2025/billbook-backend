@@ -35,10 +35,10 @@ public class S3UploadService {
         return new PictureDto(amazonS3.getUrl(bucket, uniqueFileName).toString(), uniqueFileName);
     }
 
-    public ResponseEntity<UrlResource> downloadImage(String originalFilename) {
-        UrlResource urlResource = new UrlResource(amazonS3.getUrl(bucket, originalFilename));
+    public ResponseEntity<UrlResource> downloadImage(String uniqueFilename) {
+        UrlResource urlResource = new UrlResource(amazonS3.getUrl(bucket, uniqueFilename));
 
-        String contentDisposition = "attachment; filename=\"" +  originalFilename + "\"";
+        String contentDisposition = "attachment; filename=\"" +  uniqueFilename + "\"";
 
         // header에 CONTENT_DISPOSITION 설정을 통해 클릭 시 다운로드 진행
         return ResponseEntity.ok()

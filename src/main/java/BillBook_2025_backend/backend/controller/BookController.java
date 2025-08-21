@@ -73,9 +73,9 @@ public class BookController {
     }
 
     @PostMapping("/api/books/register/new")
-    public ResponseEntity<String> register(@RequestBody BookPostRequestDto dto, HttpSession session) {
+    public ResponseEntity<String> register(@RequestBody BookPostRequestDto dto, HttpSession session, @RequestPart MultipartFile file) {
         Long userId = (Long) session.getAttribute("id");
-        bookService.register(dto, userId);
+        bookService.register(dto, userId, file);
         return ResponseEntity.ok("게시글이 성공적으로 등록되었습니다.");
     }
 

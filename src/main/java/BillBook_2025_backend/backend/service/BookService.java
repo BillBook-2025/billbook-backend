@@ -45,7 +45,6 @@ public class BookService {
         Book book = new Book();
         book.setSellerId(member.getId());
         book.setBookPoint(dto.getBookPoint());
-        book.setBookPic(dto.getBookPic());
         book.setLocation(dto.getLocation());
         book.setStatus(BookStatus.PENDING);
         book.setContent(dto.getContent());

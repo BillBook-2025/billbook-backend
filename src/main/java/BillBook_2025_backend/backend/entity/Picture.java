@@ -36,4 +36,10 @@ public class Picture {
         this.book = book;
     }
 
+    public Picture(String filename, String url, Member member) {
+        this.filename = filename;
+        this.url = url;
+        this.member = member;
+    }
+
 }

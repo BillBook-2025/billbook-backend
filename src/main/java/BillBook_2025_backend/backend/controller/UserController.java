@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -102,5 +104,13 @@ public class UserController {
         userService.checkAccessRight(id, userId);
         DealHistory dealHistory = userService.getDealHistory(userId);
         return ResponseEntity.ok(dealHistory);
+    }
+
+    @PostMapping("/api/profile/{usreId}/buy")
+    public ResponseEntity<PictureDto> uploadProfilePicture(HttpSession session, @PathVariable Long userId, @RequestPart MultipartFile file) throws IOException {
+        Long id = (Long) session.getAttribute("id");
+        userService.checkPermission(id, userId);
+        PictureDto pictureDto = userService.uploadProfileImage(userId, file);
+        return ResponseEntity.ok(pictureDto);
     }
 }
