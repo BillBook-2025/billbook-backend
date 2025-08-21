@@ -113,6 +113,9 @@ public class BookController {
         Long userId = (Long) session.getAttribute("id");
         userService.checkBookSeller(userId, book_id);
         bookService.deleteImages(request);
+        return ResponseEntity.ok("ok");
 
     }
+
+
 }

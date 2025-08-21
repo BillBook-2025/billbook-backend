@@ -17,8 +17,6 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long sellerId;  //빌려준 사람
-    private Long buyerId;  //빌린 사람
     private Long bookPoint;
     private LocalDateTime time;
     private String location; //자료형 나중에 체크
@@ -34,6 +32,12 @@ public class Book {
     private Long total;
     private LocalDateTime returnTime;
 
+
+    @ManyToOne
+    private Member seller;
+
+    @ManyToOne
+    private Member buyer;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Picture> picture = new ArrayList<>();

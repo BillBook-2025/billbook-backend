@@ -223,4 +223,31 @@ public class UserService {
             return pictureDto;
         }
     }
+
+    public DataResponse getBuyList(Long userId) {
+        List<Book> byBuyerId = bookRepository.findByBuyerId(userId);
+        List<BookResponse> responses = new ArrayList<>();
+        for (Book book : byBuyerId) {
+            BookResponse bookResponse = new BookResponse(book);
+            responses.add(bookResponse);
+        }
+        BookListResponse bookListResponse = new BookListResponse(responses);
+        DataResponse dataResponse = new DataResponse(bookListResponse, new Pagenation());  // Pagenation은 지금 공백임
+        return dataResponse;
+
+    }
+
+    public DataResponse getSellList(Long userId) {
+
+        List<Book> bySellerId = bookRepository.findBySellerId(userId);
+        List<BookResponse> responses = new ArrayList<>();
+        for (Book book : bySellerId) {
+            BookResponse bookResponse = new BookResponse(book);
+            responses.add(bookResponse);
+        }
+        BookListResponse bookListResponse = new BookListResponse(responses);
+        DataResponse dataResponse = new DataResponse(bookListResponse, new Pagenation());  // Pagenation은 지금 공백임
+        return dataResponse;
+
+    }
 }
