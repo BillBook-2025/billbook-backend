@@ -35,7 +35,7 @@ public class BookService {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 등록이 가능합니다."));
 
         Book book = new Book();
-        book.setUserId(member.getId());
+        book.setSellerId(member.getId());
         book.setBookPoint(dto.getBookPoint());
         book.setBookPic(dto.getBookPic());
         book.setLocation(dto.getLocation());
@@ -100,7 +100,7 @@ public class BookService {
         if (bookRepository.findById(bookId).isEmpty()) { //책 게시물이 존재하지 않을 경우
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            if (!bookRepository.findById(bookId).get().getUserId().equals(member.getId())) { //판매자 아이디가 아닐 경우
+            if (!bookRepository.findById(bookId).get().getSellerId().equals(member.getId())) { //판매자 아이디가 아닐 경우
                 throw new AccessDeniedException("판매자만 수정할 수 있습니다");
             } else {
 //                return bookRepository.update(bookId, book);
@@ -127,10 +127,10 @@ public class BookService {
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            if (bookRepository.findById(bookId).get().getUserId().equals(member.getId())) {
+            if (bookRepository.findById(bookId).get().getSellerId().equals(member.getId())) {
                 throw new AccessDeniedException("직접 올린 게시물은 대출할 수 없습니다.");
             } else {
-                bookRepository.updateBorrowId(bookId, userId, BookStatus.BORROWING);
+                bookRepository.updateBuyerId(bookId, userId, BookStatus.BORROWING);
             }
         }
     }
@@ -140,7 +140,7 @@ public class BookService {
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            if (!bookRepository.findById(bookId).get().getUserId().equals(member.getId())) {
+            if (!bookRepository.findById(bookId).get().getSellerId().equals(member.getId())) {
                 throw new AccessDeniedException("판매자만 글을 삭제할 수 있습니다");
             } else {
                 bookRepository.delete(bookRepository.findById(bookId).get());
@@ -154,7 +154,7 @@ public class BookService {
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            if (!bookRepository.findById(bookId).get().getUserId().equals(member.getId())) {
+            if (!bookRepository.findById(bookId).get().getSellerId().equals(member.getId())) {
                 throw new AccessDeniedException("판매자만 반납완료를 처리할 수 있습니다");
             } else {
                 bookRepository.updateStatus(bookId, BookStatus.RETURNED); //반납처리 완료

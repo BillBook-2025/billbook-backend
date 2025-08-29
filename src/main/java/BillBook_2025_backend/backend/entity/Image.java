@@ -1,7 +1,13 @@
 package BillBook_2025_backend.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 public class Image {
     @Id
@@ -11,7 +17,8 @@ public class Image {
     private String filename;
     private String url;
 
-    @ManyToOne
+
+    @OneToOne
     private Member member;
 
     @ManyToOne

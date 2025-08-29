@@ -1,7 +1,9 @@
 package BillBook_2025_backend.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+@Data
 @Entity
 public class Follow {
     @Id
@@ -13,4 +15,10 @@ public class Follow {
 
     @ManyToOne
     private Member following;
+
+    public Follow() {}
+    public Follow(Member follower, Member following) {
+        this.follower = follower;
+        this.following = following;
+    }
 }
