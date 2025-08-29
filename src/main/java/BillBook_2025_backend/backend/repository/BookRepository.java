@@ -8,14 +8,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
 
 
 
-    List<Book> findByUserId(Long userId); //빌린 사람 아이디로 게시물 찾기
-    List<Book> findByBorrowId(Long borrowId);  //빌려준 사람 아이디로 게시물 찾기
+    List<Book> findBySellerId(Long sellerId); //빌린 사람 아이디로 게시물 찾기
+    List<Book> findByBuyerId(Long buyerId);  //빌린 사람 아이디로 게시물 찾기
     List<Book> findByTitle(String title);
     List<Book> findByAuthor(String author);
     List<Book> findAll();
@@ -25,8 +24,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     void updateStatus(@Param("id") Long id, @Param("status") BookStatus status);
 
     @Modifying
-    @Query("update Book b set b.borrowId = :borrowId, b.status = :status where b.id = :id") //빌리는 유저 아이디 setting
-    void updateBorrowId(@Param("id") Long id, @Param("borrowId") Long borrowId, @Param("status") BookStatus status);
+    @Query("update Book b set b.buyerId = :buyerId, b.status = :status where b.id = :id") //빌리는 유저 아이디 setting
+    void updateBuyerId(@Param("id") Long id, @Param("buyerId") Long buyerId, @Param("status") BookStatus status);
 
 
 }

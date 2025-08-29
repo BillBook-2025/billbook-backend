@@ -1,5 +1,6 @@
 package BillBook_2025_backend.backend.entity;
 
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,9 @@ public class Member {
     private double temperature;
     private String userName;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    private Image image;
+
     @OneToMany
     private List<Search> search = new ArrayList<>();
 
@@ -38,8 +42,6 @@ public class Member {
     @OneToMany
     private List<Follow> following = new ArrayList<>();
 
-    @OneToMany
-    private List<Image> images = new ArrayList<>();
 
     @OneToMany
     private List<ChatRoom> chatRooms = new ArrayList<>();

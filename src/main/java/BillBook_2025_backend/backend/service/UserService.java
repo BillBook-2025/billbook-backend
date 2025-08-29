@@ -1,13 +1,12 @@
 package BillBook_2025_backend.backend.service;
 
-import BillBook_2025_backend.backend.dto.BookListResponse;
-import BillBook_2025_backend.backend.dto.BookResponse;
-import BillBook_2025_backend.backend.dto.DeleteMemberDto;
-import BillBook_2025_backend.backend.dto.UserInfoDto;
+import BillBook_2025_backend.backend.dto.*;
 import BillBook_2025_backend.backend.entity.Book;
+import BillBook_2025_backend.backend.entity.Follow;
 import BillBook_2025_backend.backend.entity.LikeBook;
 import BillBook_2025_backend.backend.entity.Member;
 import BillBook_2025_backend.backend.repository.BookRepository;
+import BillBook_2025_backend.backend.repository.FollowRepository;
 import BillBook_2025_backend.backend.repository.LikeBookRepository;
 import BillBook_2025_backend.backend.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,12 +23,14 @@ public class UserService {
     private final MemberRepository memberRepository;
     private final LikeBookRepository likeBookRepository;
     private final BookRepository bookRepository;
+    private final FollowRepository followRepository;
 
     @Autowired
-    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository) {
+    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository) {
         this.memberRepository = memberRepository;
         this.likeBookRepository = likeBookRepository;
         this.bookRepository = bookRepository;
+        this.followRepository = followRepository;
     }
 
     public Member signup(Member member) {
@@ -128,5 +129,71 @@ public class UserService {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
         UserInfoDto userInfoDto = new UserInfoDto(member.getPoints());
         return userInfoDto;
+    }
+
+    public ProfileDto getProfileDetail(Long userId) {
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+        Long sellNum = (long)bookRepository.findBySellerId(userId).size();
+        Long buyNum = (long)bookRepository.findByBuyerId(userId).size();
+        return new ProfileDto(member, buyNum, sellNum);
+    }
+
+    public List<FollowDto> getFollowers(Long userId) {
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+        List<FollowDto> followers = new ArrayList<>();
+        for (Follow follow : member.getFollower()) {
+            Member following = follow.getFollowing();
+            FollowDto dto = new FollowDto(following);
+            followers.add(dto);
+        }
+        return followers;
+
+    }
+
+
+    public List<FollowDto> getFollowings(Long userId) {
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+        List<FollowDto> followings = new ArrayList<>();
+        for (Follow follow : member.getFollowing()) {
+            Member follower = follow.getFollower();
+            FollowDto dto = new FollowDto(follower);
+            followings.add(dto);
+        }
+        return followings;
+    }
+
+    public void addFollowing(Long userId, Long followingId) {
+        Member following = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+        Member follower = memberRepository.findById(followingId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+
+        Follow follow = new Follow(follower, following);
+        following.getFollowing().add(follow);
+        follower.getFollower().add(follow);
+        followRepository.save(follow);
+
+    }
+
+    public void deleteFollowing(Long userId, Long followingId) {
+        Member following = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+        Member follower = memberRepository.findById(followingId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+
+        Follow follow = followRepository.findByFollowerAndFollowing(follower, following)
+                .orElseThrow(() -> new EntityNotFoundException("팔로우 관계가 존재하지 않습니다."));
+        following.getFollower().remove(follow);
+        follower.getFollowing().remove(follow);
+        followRepository.delete(follow);
+    }
+
+    public void checkAccessRight(Long id, Long userId) {
+        if (id.equals(userId)) {
+            throw new AccessDeniedException("자신과의 거래는 불가능 합니다.");
+        }
+    }
+
+    public DealHistory getDealHistory(Long userId) {
+        Long buyNum = (long) bookRepository.findByBuyerId(userId).size();
+        Long sellNum = (long) bookRepository.findBySellerId(userId).size();
+        DealHistory response = new DealHistory(buyNum + sellNum);
+        return response;
     }
 }

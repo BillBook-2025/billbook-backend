@@ -1,12 +1,15 @@
 package BillBook_2025_backend.backend.controller;
 
-import BillBook_2025_backend.backend.dto.BookListResponse;
-import BillBook_2025_backend.backend.dto.UserInfoDto;
+import BillBook_2025_backend.backend.dto.*;
 import BillBook_2025_backend.backend.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -18,8 +21,9 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
+
     @GetMapping("/api/{userId}/my")
-    public ResponseEntity<UserInfoDto> getMyInfoDetails(HttpSession session,@PathVariable Long userId) {
+    public ResponseEntity<UserInfoDto> getMyInfoDetails(HttpSession session, @PathVariable Long userId) {
         Long id = (Long) session.getAttribute("id");
         userService.checkPermission(id, userId);
         UserInfoDto response = userService.getMyInfoDetails(id);
@@ -43,7 +47,7 @@ public class UserController {
 
     }
 
-    @GetMapping("/api/{userId}/my")
+    @GetMapping("/api/{userId}/my/point")
     public ResponseEntity<UserInfoDto> getPoints(HttpSession session, @PathVariable Long userId) {
         Long id = (Long) session.getAttribute("id");
         userService.checkPermission(id, userId);
@@ -51,4 +55,52 @@ public class UserController {
         return ResponseEntity.ok(points);
     }
 
+
+    @GetMapping("/api/profile/{userId}")
+    public ResponseEntity<ProfileDto> getProfileDetail(HttpSession session, @PathVariable Long userId) {
+        Long id = (Long) session.getAttribute("id");
+        userService.checkPermission(id, userId);
+        ProfileDto profileDetail = userService.getProfileDetail(userId);
+        return ResponseEntity.ok(profileDetail);
+    }
+
+    @GetMapping("/api/profile/{userId}/follower")
+    public ResponseEntity<Map<String, List<FollowDto>>> getFollowers(HttpSession session, @PathVariable Long userId) {
+        Long id = (Long) session.getAttribute("id");
+        userService.checkPermission(id, userId);
+        List<FollowDto> followers = userService.getFollowers(userId);
+        return ResponseEntity.ok(Map.of("follower", followers));
+    }
+
+    @GetMapping("/api/prifile/{userId}/following")
+    public ResponseEntity<Map<String, List<FollowDto>>> getFollowings(HttpSession session, @PathVariable Long userId) {
+        Long id = (Long) session.getAttribute("id");
+        userService.checkPermission(id, userId);
+        List<FollowDto> followings = userService.getFollowings(userId);
+        return ResponseEntity.ok(Map.of("following", followings));
+    }
+
+    @PostMapping("/api/profile/{userId}/following")
+    public ResponseEntity<String> follow(HttpSession session, @PathVariable Long userId, @RequestBody FollowDto request) {
+        Long id = (Long) session.getAttribute("id");
+        userService.checkPermission(id, userId);
+        userService.addFollowing(userId, request.getUserId());
+        return ResponseEntity.ok("ok");
+    }
+
+    @DeleteMapping("/api/profile/{userId}/following")
+    public ResponseEntity<String> unfollow(HttpSession session, @PathVariable Long userId, @RequestBody FollowDto request) {
+        Long id = (Long) session.getAttribute("id");
+        userService.checkPermission(id, userId);
+        userService.deleteFollowing(userId, request.getUserId());
+        return ResponseEntity.ok("ok");
+    }
+
+    @GetMapping("/api/profile/{userId}/buy")
+    public ResponseEntity<DealHistory> dealHistory(HttpSession session, @PathVariable Long userId) {
+        Long id = (Long) session.getAttribute("id");
+        userService.checkAccessRight(id, userId);
+        DealHistory dealHistory = userService.getDealHistory(userId);
+        return ResponseEntity.ok(dealHistory);
+    }
 }

@@ -31,6 +31,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
+    @ExceptionHandler(IllegalAccessException.class)
+    public ResponseEntity<?> handleIllegalAccess(IllegalAccessException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
 
 }
 
