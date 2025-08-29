@@ -10,6 +10,8 @@ public class Pagenation {
     private int totalPages;
     private int totalItems;
 
+    public Pagenation() {}
+
     public Pagenation(int currentPage, int totalPages, int totalItems) {
         this.currentPage = currentPage;
         this.totalPages = totalPages;

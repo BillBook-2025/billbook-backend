@@ -5,9 +5,10 @@ import BillBook_2025_backend.backend.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -96,11 +97,31 @@ public class UserController {
         return ResponseEntity.ok("ok");
     }
 
-    @GetMapping("/api/profile/{userId}/buy")
+    @GetMapping("/api/profile/{userId}/history")
     public ResponseEntity<DealHistory> dealHistory(HttpSession session, @PathVariable Long userId) {
         Long id = (Long) session.getAttribute("id");
         userService.checkAccessRight(id, userId);
         DealHistory dealHistory = userService.getDealHistory(userId);
         return ResponseEntity.ok(dealHistory);
+    }
+
+    @PostMapping("/api/profile/{usreId}/image")
+    public ResponseEntity<PictureDto> uploadProfilePicture(HttpSession session, @PathVariable Long userId, @RequestPart MultipartFile file) throws IOException {
+        Long id = (Long) session.getAttribute("id");
+        userService.checkPermission(id, userId);
+        PictureDto pictureDto = userService.uploadProfileImage(userId, file);
+        return ResponseEntity.ok(pictureDto);
+    }
+
+    @GetMapping("/api/profile/{userId}/buy")
+    public ResponseEntity<DataResponse> getBuyList(HttpSession session, @PathVariable Long userId) {
+        DataResponse buyList = userService.getBuyList(userId);
+        return ResponseEntity.ok(buyList);
+    }
+
+    @GetMapping("/api/profile/{userId}/sell")
+    public ResponseEntity<DataResponse> getSellList(HttpSession session, @PathVariable Long userId) {
+        DataResponse sellList = userService.getSellList(userId);
+        return ResponseEntity.ok(sellList);
     }
 }
