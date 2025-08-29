@@ -2,15 +2,13 @@ package BillBook_2025_backend.backend.entity;
 
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
+@Data
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -22,10 +20,10 @@ public class Member {
     private double temperature;
     private String userName;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private Image image;
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
+    private Picture picture;
 
-    @OneToMany
+    @OneToMany(mappedBy = "member")
     private List<Search> search = new ArrayList<>();
 
     // 보낸 결제 목록
@@ -36,17 +34,20 @@ public class Member {
     @OneToMany(mappedBy = "receiver")
     private List<Payment> receivedPayments = new ArrayList<>();
 
-    @OneToMany
+    @OneToMany(mappedBy = "following")
     private List<Follow> follower = new ArrayList<>();
 
-    @OneToMany
+    @OneToMany(mappedBy = "follower")
     private List<Follow> following = new ArrayList<>();
 
 
-    @OneToMany
-    private List<ChatRoom> chatRooms = new ArrayList<>();
+    @OneToMany(mappedBy = "seller")
+    private List<ChatRoom> sellingRooms;
 
-    @OneToMany
+    @OneToMany(mappedBy = "buyer")
+    private List<ChatRoom> buyingRooms;
+
+    @OneToMany(mappedBy = "chatRoom")
     private List<Message> messages = new ArrayList<>();
 
 

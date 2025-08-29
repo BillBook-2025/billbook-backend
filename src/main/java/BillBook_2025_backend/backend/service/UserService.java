@@ -1,10 +1,7 @@
 package BillBook_2025_backend.backend.service;
 
 import BillBook_2025_backend.backend.dto.*;
-import BillBook_2025_backend.backend.entity.Book;
-import BillBook_2025_backend.backend.entity.Follow;
-import BillBook_2025_backend.backend.entity.LikeBook;
-import BillBook_2025_backend.backend.entity.Member;
+import BillBook_2025_backend.backend.entity.*;
 import BillBook_2025_backend.backend.repository.BookRepository;
 import BillBook_2025_backend.backend.repository.FollowRepository;
 import BillBook_2025_backend.backend.repository.LikeBookRepository;
@@ -14,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,13 +23,15 @@ public class UserService {
     private final LikeBookRepository likeBookRepository;
     private final BookRepository bookRepository;
     private final FollowRepository followRepository;
+    private final S3UploadService s3UploadService;
 
     @Autowired
-    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository) {
+    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository, S3UploadService s3UploadService) {
         this.memberRepository = memberRepository;
         this.likeBookRepository = likeBookRepository;
         this.bookRepository = bookRepository;
         this.followRepository = followRepository;
+        this.s3UploadService = s3UploadService;
     }
 
     public Member signup(Member member) {
@@ -115,7 +116,7 @@ public class UserService {
         List<BookResponse> bookList = new ArrayList<>();
         List<LikeBook> byUserId = likeBookRepository.findByUserId(id);
         for (LikeBook likeBook : byUserId) {
-            Book book = bookRepository.findById(likeBook.getBookId()).orElseThrow(() -> new EntityNotFoundException("해당 거래글이 존재하지 않습니다."));
+            Book book = bookRepository.findById(likeBook.getBook().getId()).orElseThrow(() -> new EntityNotFoundException("해당 거래글이 존재하지 않습니다."));
             BookResponse bookResponse = new BookResponse(book);
             bookList.add(bookResponse);
         }
@@ -195,5 +196,58 @@ public class UserService {
         Long sellNum = (long) bookRepository.findBySellerId(userId).size();
         DealHistory response = new DealHistory(buyNum + sellNum);
         return response;
+    }
+
+    public void checkBookSeller(Long userId, Long bookId) {
+        Book book = bookRepository.findById(bookId).orElseThrow(() -> new EntityNotFoundException("해당 거래글을 찾을 수 없습니다."));
+        Long sellerId = book.getSellerId();
+        if (sellerId.equals(userId)) {
+            throw new AccessDeniedException("접근권한이 없습니다.");
+        }
+    }
+
+    @Transactional
+    public PictureDto uploadProfileImage(Long userId, MultipartFile file) throws IOException {
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저는 존재하지 않습니다."));
+        if (member.getPicture() == null) {  //프로필 사진이 없는 경우
+            PictureDto pictureDto = s3UploadService.saveFile(file);
+            Picture picture = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), member);
+            member.setPicture(picture);
+            return pictureDto;
+        } else { //프로필 사진이 이미 존재하는 경우 교체
+            Picture propfilePicture = member.getPicture();
+            s3UploadService.deleteImage(propfilePicture.getFilename());
+            PictureDto pictureDto = s3UploadService.saveFile(file);
+            Picture picture = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), member);
+            member.setPicture(picture);
+            return pictureDto;
+        }
+    }
+
+    public DataResponse getBuyList(Long userId) {
+        List<Book> byBuyerId = bookRepository.findByBuyerId(userId);
+        List<BookResponse> responses = new ArrayList<>();
+        for (Book book : byBuyerId) {
+            BookResponse bookResponse = new BookResponse(book);
+            responses.add(bookResponse);
+        }
+        BookListResponse bookListResponse = new BookListResponse(responses);
+        DataResponse dataResponse = new DataResponse(bookListResponse, new Pagenation());  // Pagenation은 지금 공백임
+        return dataResponse;
+
+    }
+
+    public DataResponse getSellList(Long userId) {
+
+        List<Book> bySellerId = bookRepository.findBySellerId(userId);
+        List<BookResponse> responses = new ArrayList<>();
+        for (Book book : bySellerId) {
+            BookResponse bookResponse = new BookResponse(book);
+            responses.add(bookResponse);
+        }
+        BookListResponse bookListResponse = new BookListResponse(responses);
+        DataResponse dataResponse = new DataResponse(bookListResponse, new Pagenation());  // Pagenation은 지금 공백임
+        return dataResponse;
+
     }
 }

@@ -14,6 +14,6 @@ public class FollowDto {
     public FollowDto(Member member) {
         this.userId = member.getId();
         this.userName = member.getUserName();
-        this.profilePic = member.getImage().getUrl();
+        this.profilePic = member.getPicture().getUrl();
     }
 }

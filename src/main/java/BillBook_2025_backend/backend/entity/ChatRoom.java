@@ -14,10 +14,10 @@ public class ChatRoom {
     private LocalDateTime createdAt;
 
     @ManyToOne
-    private Member borrower;
+    private Member buyer;
 
     @ManyToOne
-    private Member lender;
+    private Member seller;
 
     @ManyToOne
     private Book book;
