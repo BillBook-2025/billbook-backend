@@ -200,7 +200,7 @@ public class UserService {
 
     public void checkBookSeller(Long userId, Long bookId) {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new EntityNotFoundException("해당 거래글을 찾을 수 없습니다."));
-        Long sellerId = book.getSellerId();
+        Long sellerId = book.getSeller().getId();
         if (sellerId.equals(userId)) {
             throw new AccessDeniedException("접근권한이 없습니다.");
         }
