@@ -46,9 +46,11 @@ public class BookController {
     }
 
     @PatchMapping("/api/books/{book_id}")
-    public ResponseEntity<Book> updateBook(@PathVariable Long book_id,@RequestBody Book book, HttpSession session){
+    public ResponseEntity<Book> updateBook(@PathVariable Long book_id,@RequestBody Book book, HttpSession session
+                                           ,@RequestPart(value = "deleteImages", required = false) List<String> deleteImages
+                                           ,@RequestPart(value = "newImages", required = false) List<MultipartFile> files) throws IOException {
         Long userId = (Long) session.getAttribute("id");
-        return ResponseEntity.ok(bookService.updateBookDetail(book, book_id, userId));
+        return ResponseEntity.ok(bookService.updateBookDetail(book, book_id, userId, deleteImages, files));
     }
 
     @GetMapping("/api/books/{book_id}/like")
@@ -73,9 +75,9 @@ public class BookController {
     }
 
     @PostMapping("/api/books/register/new")
-    public ResponseEntity<String> register(@RequestBody BookPostRequestDto dto, HttpSession session, @RequestPart MultipartFile file) {
+    public ResponseEntity<String> register(@RequestBody BookPostRequestDto dto, HttpSession session, @RequestPart List<MultipartFile> files) throws IOException {
         Long userId = (Long) session.getAttribute("id");
-        bookService.register(dto, userId, file);
+        bookService.register(dto, userId, files);
         return ResponseEntity.ok("게시글이 성공적으로 등록되었습니다.");
     }
 

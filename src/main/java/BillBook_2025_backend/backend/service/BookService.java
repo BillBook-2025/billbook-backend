@@ -39,11 +39,11 @@ public class BookService {
         this.pictureRepository = pictureRepository;
     }
 
-    public void register(BookPostRequestDto dto, Long userId) {
+    public void register(BookPostRequestDto dto, Long userId, List<MultipartFile> files) throws IOException {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 등록이 가능합니다."));
 
         Book book = new Book();
-        book.setSellerId(member.getId());
+        book.setSeller(member);
         book.setBookPoint(dto.getBookPoint());
         book.setLocation(dto.getLocation());
         book.setStatus(BookStatus.PENDING);
@@ -56,7 +56,16 @@ public class BookService {
         book.setDescription(dto.getDescription());
        // book.setTotal(dto.getTotal());
 
+        List<Picture> pictures = new ArrayList<>();
+        for (MultipartFile file : files) {
+            PictureDto pictureDto = s3UploadService.saveFile(file);
+            Picture picture = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), book);
+            pictures.add(picture);
+        }
+        book.setPicture(pictures);
+
         bookRepository.save(book);
+        pictureRepository.saveAll(pictures);
     }
 
     public List<Book> findAllBooks(Long userId) {
@@ -82,7 +91,7 @@ public class BookService {
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            Optional<LikeBook> existing = likeBookRepository.findByBookIdAndUserId(bookId, userId);
+            Optional<LikeBook> existing = likeBookRepository.findByBookIdAndMemberId(bookId, userId);
             if (existing.isPresent()) { //좋아요 취소
                 likeBookRepository.delete(existing.get());
             } else { //좋아요
@@ -90,7 +99,7 @@ public class BookService {
                 LikeBook likeBook = new LikeBook(book, member);
                 likeBookRepository.save(likeBook);
             }
-            return likeBookRepository.countByBookId(bookId);
+            return likeBookRepository.countByBookId(bookRepository.findById(bookId).get());
         }
     }
 
@@ -98,32 +107,72 @@ public class BookService {
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            return likeBookRepository.countByBookId(bookId);
+            return likeBookRepository.countByBookId(bookRepository.findById(bookId).get());
         }
     }
 
     @Transactional
-    public Book updateBookDetail(Book book, Long bookId, Long userId) {
+    public Book updateBookDetail(Book book, Long bookId, Long userId, List<String> deleteImages, List<MultipartFile> files) throws IOException {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 수정이 가능합니다.")); //로그인x일때
         if (bookRepository.findById(bookId).isEmpty()) { //책 게시물이 존재하지 않을 경우
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            if (!bookRepository.findById(bookId).get().getSellerId().equals(member.getId())) { //판매자 아이디가 아닐 경우
+            if (!bookRepository.findById(bookId).get().getSeller().getId().equals(member.getId())) { //판매자 아이디가 아닐 경우
                 throw new AccessDeniedException("판매자만 수정할 수 있습니다");
             } else {
-//                return bookRepository.update(bookId, book);
-                Book findBook = bookRepository.findById(bookId).get();
-                findBook.setBookPoint(book.getBookPoint());
-                findBook.setBookPic(book.getBookPic());
-                findBook.setLocation(book.getLocation());
-                findBook.setContent(book.getContent());
-                findBook.setTitle(book.getTitle());
-                findBook.setAuthor(book.getAuthor());
-                findBook.setPublisher(book.getPublisher());
-                findBook.setIsbn(book.getIsbn());
-                findBook.setCategory(book.getCategory());
-                findBook.setDescription(book.getDescription());
-                return findBook;
+                if (files == null || files.size() == 0) {
+                    Book findBook = bookRepository.findById(bookId).get();
+
+                    if (deleteImages != null && deleteImages.size() > 0) {
+                        for (String deleteImage : deleteImages) {
+                            Picture picture = pictureRepository.findByUrl(deleteImage).orElseThrow(() -> new EntityNotFoundException("not found picture"));
+                            findBook.getPicture().remove(picture);
+                            s3UploadService.deleteImage(picture.getFilename());
+                        }
+                    }
+
+                    findBook.setBookPoint(book.getBookPoint());
+                    findBook.setLocation(book.getLocation());
+                    findBook.setContent(book.getContent());
+                    findBook.setTitle(book.getTitle());
+                    findBook.setAuthor(book.getAuthor());
+                    findBook.setPublisher(book.getPublisher());
+                    findBook.setIsbn(book.getIsbn());
+                    findBook.setCategory(book.getCategory());
+                    findBook.setDescription(book.getDescription());
+                    return findBook;
+                } else {
+                    Book findBook = bookRepository.findById(bookId).get();
+
+                    if (deleteImages != null && deleteImages.size() > 0) {
+                        for (String deleteImage : deleteImages) {
+                            Picture picture = pictureRepository.findByUrl(deleteImage).orElseThrow(() -> new EntityNotFoundException("not found picture"));
+                            findBook.getPicture().remove(picture);
+                            s3UploadService.deleteImage(picture.getFilename());
+                        }
+                    }
+
+                    findBook.setBookPoint(book.getBookPoint());
+                    findBook.setLocation(book.getLocation());
+                    findBook.setContent(book.getContent());
+                    findBook.setTitle(book.getTitle());
+                    findBook.setAuthor(book.getAuthor());
+                    findBook.setPublisher(book.getPublisher());
+                    findBook.setIsbn(book.getIsbn());
+                    findBook.setCategory(book.getCategory());
+                    findBook.setDescription(book.getDescription());
+
+                    List<Picture> pictureList = findBook.getPicture();
+                    for (MultipartFile file : files) {
+                        PictureDto pictureDto = s3UploadService.saveFile(file);
+                        Picture picture = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), findBook);
+                        pictureList.add(picture);
+                    }
+
+                    return findBook;
+
+                }
+
             }
 
         }
@@ -135,10 +184,10 @@ public class BookService {
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            if (bookRepository.findById(bookId).get().getSellerId().equals(member.getId())) {
+            if (bookRepository.findById(bookId).get().getSeller().getId().equals(member.getId())) {
                 throw new AccessDeniedException("직접 올린 게시물은 대출할 수 없습니다.");
             } else {
-                bookRepository.updateBuyerId(bookId, userId, BookStatus.BORROWING);
+                bookRepository.updateBuyerId(bookId, member, BookStatus.BORROWING);
             }
         }
     }
@@ -148,7 +197,7 @@ public class BookService {
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            if (!bookRepository.findById(bookId).get().getSellerId().equals(member.getId())) {
+            if (!bookRepository.findById(bookId).get().getSeller().getId().equals(member.getId())) {
                 throw new AccessDeniedException("판매자만 글을 삭제할 수 있습니다");
             } else {
                 bookRepository.delete(bookRepository.findById(bookId).get());
@@ -162,7 +211,7 @@ public class BookService {
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
-            if (!bookRepository.findById(bookId).get().getSellerId().equals(member.getId())) {
+            if (!bookRepository.findById(bookId).get().getSeller().getId().equals(member.getId())) {
                 throw new AccessDeniedException("판매자만 반납완료를 처리할 수 있습니다");
             } else {
                 bookRepository.updateStatus(bookId, BookStatus.RETURNED); //반납처리 완료

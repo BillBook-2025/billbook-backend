@@ -1,5 +1,6 @@
 package BillBook_2025_backend.backend.config;
 
+import BillBook_2025_backend.backend.handler.ChatWebSocketHandler;
 import BillBook_2025_backend.backend.handler.HttpSessionInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,14 +15,14 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    @Bean
-    public WebSocketHandler signalingSocketHandler() {
-        return new WebSocketHandler();
-    }
+    private final ChatWebSocketHandler chatWebSocketHandler;
+
+
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry
-                .addHandler(signalingSocketHandler(), "/billBook/ws/conn")
+                .addHandler(chatWebSocketHandler, "/billBook/ws/conn")
                 .addInterceptors(new HttpSessionInterceptor())
                 .setAllowedOrigins("*");
     }

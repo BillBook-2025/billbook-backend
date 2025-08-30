@@ -1,18 +1,18 @@
 package BillBook_2025_backend.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,9 +34,11 @@ public class Book {
 
 
     @ManyToOne
+    @JoinColumn(name = "seller_id")
     private Member seller;
 
     @ManyToOne
+    @JoinColumn(name = "buyer_id")
     private Member buyer;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)

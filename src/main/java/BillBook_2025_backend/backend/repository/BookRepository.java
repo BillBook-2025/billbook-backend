@@ -2,6 +2,7 @@ package BillBook_2025_backend.backend.repository;
 
 import BillBook_2025_backend.backend.entity.Book;
 import BillBook_2025_backend.backend.entity.BookStatus;
+import BillBook_2025_backend.backend.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -24,8 +25,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     void updateStatus(@Param("id") Long id, @Param("status") BookStatus status);
 
     @Modifying
-    @Query("update Book b set b.buyerId = :buyerId, b.status = :status where b.id = :id") //빌리는 유저 아이디 setting
-    void updateBuyerId(@Param("id") Long id, @Param("buyerId") Long buyerId, @Param("status") BookStatus status);
+    @Query("update Book b set b.buyer = :buyer, b.status = :status where b.id = :id") //빌리는 유저 아이디 setting
+    void updateBuyerId(@Param("id") Long id, @Param("buyer") Member buyer, @Param("status") BookStatus status);
 
 
 }

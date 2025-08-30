@@ -47,7 +47,7 @@ public class Member {
     @OneToMany(mappedBy = "buyer")
     private List<ChatRoom> buyingRooms;
 
-    @OneToMany(mappedBy = "chatRoom")
+    @OneToMany(mappedBy = "sender")
     private List<Message> messages = new ArrayList<>();
 
 

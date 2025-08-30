@@ -47,8 +47,8 @@ public class S3UploadService {
 
     }
 
-    public void deleteImage(String originalFilename)  {
-        amazonS3.deleteObject(bucket, originalFilename);
+    public void deleteImage(String uniqueFilename)  {
+        amazonS3.deleteObject(bucket, uniqueFilename);
     }
 }
 
