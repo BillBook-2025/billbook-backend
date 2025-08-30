@@ -4,7 +4,6 @@ import BillBook_2025_backend.backend.entity.Follow;
 import BillBook_2025_backend.backend.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.lang.ScopedValue;
 import java.util.Optional;
 
 public interface FollowRepository extends JpaRepository<Follow, Long> {

@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
-public class WebSocketHandler extends TextWebSocketHandler {
+public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -38,8 +38,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final ChatService chatService;
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
-
-    public WebSocketHandler(MemberRepository memberRepository, ChatService chatService, ChatRoomRepository chatRoomRepository, MessageRepository messageRepository) {
+    public ChatWebSocketHandler(MemberRepository memberRepository, ChatService chatService, ChatRoomRepository chatRoomRepository, MessageRepository messageRepository) {
         this.memberRepository = memberRepository;
         this.chatService = chatService;
         this.chatRoomRepository = chatRoomRepository;

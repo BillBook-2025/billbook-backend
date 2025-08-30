@@ -114,7 +114,7 @@ public class UserService {
 
     public BookListResponse getBookLikeList(Long id) {
         List<BookResponse> bookList = new ArrayList<>();
-        List<LikeBook> byUserId = likeBookRepository.findByUserId(id);
+        List<LikeBook> byUserId = likeBookRepository.findByMemberId(id);
         for (LikeBook likeBook : byUserId) {
             Book book = bookRepository.findById(likeBook.getBook().getId()).orElseThrow(() -> new EntityNotFoundException("해당 거래글이 존재하지 않습니다."));
             BookResponse bookResponse = new BookResponse(book);
