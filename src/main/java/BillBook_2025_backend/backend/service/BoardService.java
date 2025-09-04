@@ -57,8 +57,11 @@ public class BoardService {
 
     // 게시글 등록
     public BoardResponseDto create(BoardRequestDto dto, String userId) {
-        Member user = userRepository.findByUserId(userId)
-            .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
+        Long id = Long.valueOf(userId); // userId를 Long으로 변환
+        Member user = userRepository.findById(id)
+                .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
+        // Member user = userRepository.findByUserId(userId)
+        //     .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
 
         Board board = new Board();
         board.setTitle(dto.getTitle());
@@ -84,8 +87,11 @@ public class BoardService {
 
     // 게시글 수정
     public BoardResponseDto update(Long boardId, BoardRequestDto dto, String userId) {
-        Member user = userRepository.findByUserId(userId)
-            .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
+        Long id = Long.valueOf(userId); // userId를 Long으로 변환
+        Member user = userRepository.findById(id)
+                .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
+        // Member user = userRepository.findByUserId(userId)
+        //     .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
 
         Board board = boardRepo.findById(boardId)
             .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
@@ -107,8 +113,11 @@ public class BoardService {
 
     // 게시글 삭제
     public void delete(Long boardId, String userId) {
-        Member user = userRepository.findByUserId(userId)
-            .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
+        Long id = Long.valueOf(userId); // userId를 Long으로 변환
+        Member user = userRepository.findById(id)
+                .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
+        // Member user = userRepository.findByUserId(userId)
+        //     .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
 
         Board board = boardRepo.findById(boardId)
             .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
