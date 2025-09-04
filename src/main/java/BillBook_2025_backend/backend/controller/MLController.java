@@ -1,41 +1,14 @@
-// import org.springframework.http.*;
-// import org.springframework.web.bind.annotation.*;
-// import org.springframework.web.client.RestTemplate;
-// import java.util.*;
-
-// // @RestController
-// // @RequestMapping("/api/books/recommendations")
-// // public class MLController {
-
-// //     private final RestTemplate restTemplate = new RestTemplate();
-
-// //     @PostMapping("/predict")
-// //     public ResponseEntity<String> callFastAPI(@RequestBody Map<String, String> body) {
-// //         String url = "http://localhost:8000/predict";
-
-// //         HttpHeaders headers = new HttpHeaders();
-// //         headers.setContentType(MediaType.APPLICATION_JSON);
-
-// //         HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
-// //         ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
-
-// //         return ResponseEntity.ok("ML 결과: " + response.getBody().get("result"));
-// //     }
-// // }
-
-
-// src/main/java/BillBook_2025_backend/backend/controller/MLController.java
-
 package BillBook_2025_backend.backend.controller;
 
 import BillBook_2025_backend.backend.entity.Book;
 import BillBook_2025_backend.backend.exception.UnauthorizedException;
 import BillBook_2025_backend.backend.service.BookService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.*;
+import java.util.Map;
 
 import java.util.Comparator;
 import java.util.List;
@@ -44,10 +17,9 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/ml")
 public class MLController {
-
     private final BookService bookService;
-
-    // You can also inject MLService here for future use
+    private final RestTemplate restTemplate = new RestTemplate();
+    // 추후 MLService 연동 가능
     // private final MLService mlService;
 
     public MLController(BookService bookService) {
@@ -56,24 +28,37 @@ public class MLController {
 
     @GetMapping("/recommendations")
     public ResponseEntity<List<Book>> getRecommendedBooks(HttpSession session) {
-        // 1. Check if the user is logged in
+        // 1. 로그인 여부 확인
         Object userIdObj = session.getAttribute("id");
         if (userIdObj == null) {
             throw new UnauthorizedException("로그인이 필요합니다.");
         }
         Long userId = (Long) userIdObj;
 
-        // 2. Get all books from the database
+        // 2. DB에서 전체 책 조회
         List<Book> allBooks = bookService.findAllBooks(userId);
 
-        // 3. (Temporary) Sort the books and get the top 2
-        // Replace this with your actual recommendation logic later
+        // 3. 임시 추천 로직: 최신 ID 기준으로 정렬 후 상위 2권 선택
         List<Book> top2Books = allBooks.stream()
                 .sorted(Comparator.comparing(Book::getId).reversed())
                 .limit(2)
                 .collect(Collectors.toList());
 
-        // 4. Return the top 2 books
+        // 4. 반환
         return ResponseEntity.ok(top2Books);
+    }
+
+    @PostMapping("/predict")
+    public ResponseEntity<String> callFastAPI(@RequestBody Map<String, String> body) {
+        String url = "http://localhost:8000/predict";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+        Object result = response.getBody().get("result");
+        return ResponseEntity.ok("ML 결과: " + (result != null ? result.toString() : "없음"));
     }
 }
