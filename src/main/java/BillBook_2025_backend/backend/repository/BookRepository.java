@@ -16,6 +16,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     List<Book> findBySellerId(Long sellerId); //빌린 사람 아이디로 게시물 찾기
     List<Book> findByBuyerId(Long buyerId);  //빌린 사람 아이디로 게시물 찾기
+    List<Book> findBySellerAndBuyer(Member seller, Member buyer);
     List<Book> findByTitle(String title);
     List<Book> findByAuthor(String author);
     List<Book> findAll();

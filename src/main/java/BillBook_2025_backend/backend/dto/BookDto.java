@@ -11,17 +11,15 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+@AllArgsConstructor
 @Builder
 @Getter
 @Setter
-@AllArgsConstructor
-public class BookResponse {
-
+public class BookDto {
     private Long bookId;
-    //빌려준 사람 닉네임은 표시해야할까?
-    private Long bookPoint;
-    private List<PictureDto> bookPic = new ArrayList<>();;  //자료형 나중에 체크
     private LocalDateTime time;
+    private Long sellerId;
+    private Long bookPoint;
     private String location; //자료형 나중에 체크
     private String content;
     //책상태 양호한지 그런 상태 나타내는 변수
@@ -32,31 +30,12 @@ public class BookResponse {
     private String isbn;
     private String category;
     private String description;
-    private Long total;  //이게 뭐였지 좋아요수??였나
-    private LocalDateTime returnTime;
-    private Long sellerId;
-    private Long buyerId;
+    private List<PictureDto> bookPic = new ArrayList<>();
 
-    public BookResponse(LocalDateTime returnTime) {
-        this.returnTime = returnTime;
-    }
-
-
-    public BookResponse(Book book) {
+    public BookDto(Book book) {
         this.bookId = book.getId();
-        this.bookPoint = book.getBookPoint();
-        if (book.getPicture() != null) {
-            for (Picture picture : book.getPicture()) {
-                PictureDto dto = new PictureDto(picture.getUrl(), picture.getFilename());
-                this.bookPic.add(dto);
-            }
-
-        }
         this.sellerId = book.getSeller().getId();
-        if(book.getBuyer() != null) {
-            this.buyerId = book.getBuyer().getId();
-        }
-        this.time = book.getTime();
+        this.bookPoint = book.getBookPoint();
         this.location = book.getLocation();
         this.content = book.getContent();
         this.status = book.getStatus();
@@ -66,10 +45,14 @@ public class BookResponse {
         this.isbn = book.getIsbn();
         this.category = book.getCategory();
         this.description = book.getDescription();
-        this.total = book.getTotal();
+        this.time = book.getTime();
+        if (book.getPicture() != null) {
+            for (Picture picture : book.getPicture()) {
+                PictureDto dto = new PictureDto(picture.getUrl(), picture.getFilename());
+                this.bookPic.add(dto);
+            }
+
+        }
+
     }
-
-
-
-
 }

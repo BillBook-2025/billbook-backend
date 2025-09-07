@@ -60,6 +60,7 @@ public class Member {
         this.email = email;
         this.userName = username;
         this.temperature = 36.5;
+        this.points = 0L;
 
     }
 }

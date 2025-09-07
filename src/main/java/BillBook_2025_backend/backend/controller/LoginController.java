@@ -2,6 +2,7 @@ package BillBook_2025_backend.backend.controller;
 
 import BillBook_2025_backend.backend.dto.AuthRequest;
 import BillBook_2025_backend.backend.dto.DeleteMemberDto;
+import BillBook_2025_backend.backend.dto.MemberDto;
 import BillBook_2025_backend.backend.entity.Member;
 import BillBook_2025_backend.backend.service.EmailService;
 import BillBook_2025_backend.backend.service.UserService;
@@ -23,9 +24,8 @@ public class LoginController {
     }
 
     @PostMapping("/api/auth/login")
-    @ResponseBody
-    public ResponseEntity<Member> login(@RequestBody Member member, HttpSession session) {
-        Member userlogin = userService.login(member);
+    public ResponseEntity<Member> login(@RequestBody MemberDto memberDto, HttpSession session) {
+        Member userlogin = userService.login(memberDto);
         session.setAttribute("id", userlogin.getId());
         return ResponseEntity.ok(userlogin);
     }

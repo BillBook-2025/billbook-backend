@@ -1,5 +1,6 @@
 package BillBook_2025_backend.backend.entity;
 
+
 import jakarta.persistence.*;
 import lombok.*;
 

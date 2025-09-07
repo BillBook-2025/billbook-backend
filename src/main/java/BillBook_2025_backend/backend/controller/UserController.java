@@ -73,7 +73,7 @@ public class UserController {
         return ResponseEntity.ok(Map.of("follower", followers));
     }
 
-    @GetMapping("/api/prifile/{userId}/following")
+    @GetMapping("/api/profile/{userId}/following")
     public ResponseEntity<Map<String, List<FollowDto>>> getFollowings(HttpSession session, @PathVariable Long userId) {
         Long id = (Long) session.getAttribute("id");
         userService.checkPermission(id, userId);
@@ -98,14 +98,14 @@ public class UserController {
     }
 
     @GetMapping("/api/profile/{userId}/history")
-    public ResponseEntity<DealHistory> dealHistory(HttpSession session, @PathVariable Long userId) {
+    public ResponseEntity<DealHistory> dealHistory(HttpSession session, @PathVariable Long userId, @RequestParam Long otherUserId) {
         Long id = (Long) session.getAttribute("id");
-        userService.checkAccessRight(id, userId);
-        DealHistory dealHistory = userService.getDealHistory(userId);
+        userService.checkPermission(id, userId);
+        DealHistory dealHistory = userService.getDealHistory(otherUserId, userId);
         return ResponseEntity.ok(dealHistory);
     }
 
-    @PostMapping("/api/profile/{usreId}/image")
+    @PostMapping("/api/profile/{userId}/image")
     public ResponseEntity<PictureDto> uploadProfilePicture(HttpSession session, @PathVariable Long userId, @RequestPart MultipartFile file) throws IOException {
         Long id = (Long) session.getAttribute("id");
         userService.checkPermission(id, userId);

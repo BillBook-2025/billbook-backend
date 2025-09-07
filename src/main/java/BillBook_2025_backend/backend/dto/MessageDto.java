@@ -2,13 +2,10 @@ package BillBook_2025_backend.backend.dto;
 
 import BillBook_2025_backend.backend.entity.Message;
 import BillBook_2025_backend.backend.entity.MessageType;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
-
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor

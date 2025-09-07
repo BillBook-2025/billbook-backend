@@ -2,11 +2,13 @@ package BillBook_2025_backend.backend.service;
 
 import BillBook_2025_backend.backend.dto.*;
 import BillBook_2025_backend.backend.entity.*;
+import BillBook_2025_backend.backend.exception.AlreadyExistException;
 import BillBook_2025_backend.backend.repository.BookRepository;
 import BillBook_2025_backend.backend.repository.FollowRepository;
 import BillBook_2025_backend.backend.repository.LikeBookRepository;
 import BillBook_2025_backend.backend.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -14,9 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.rmi.AlreadyBoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class UserService {
     private final MemberRepository memberRepository;
@@ -36,7 +40,7 @@ public class UserService {
 
     public Member signup(Member member) {
         if (memberRepository.findByUserId(member.getUserId()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
+            throw new AlreadyExistException("이미 존재하는 사용자입니다.");
         }
 
         Member newMember = new Member(member.getUserId(), member.getPassword(), member.getEmail(), member.getUserName());
@@ -53,9 +57,9 @@ public class UserService {
         }
     }
 
-    public Member login(Member member) {
-        if(!memberRepository.findById(member.getId()).isPresent()) {
-            throw new IllegalArgumentException("해당 아이디를 찾을 수 없습니다.");
+    public Member login(MemberDto member) {
+        if(!memberRepository.findByUserId(member.getUserId()).isPresent()) {
+            throw new EntityNotFoundException("해당 아이디를 찾을 수 없습니다.");
         } else {
             Member finduser = memberRepository.findByUserId(member.getUserId()).get();
             if (!finduser.getPassword().equals(member.getPassword())) {
@@ -85,7 +89,13 @@ public class UserService {
 
     public UserInfoDto getMyInfoDetails(Long id) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
-        UserInfoDto userInfoDto = new UserInfoDto(member);
+        UserInfoDto userInfoDto = UserInfoDto.builder()
+                .userName(member.getUserName())
+                .email(member.getEmail())
+                .temperature(member.getTemperature())
+                .points(member.getPoints())
+                .userId(member.getUserId())
+                .build();
         return userInfoDto;
 
     }
@@ -140,27 +150,29 @@ public class UserService {
     }
 
     public List<FollowDto> getFollowers(Long userId) {
-        Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
-        List<FollowDto> followers = new ArrayList<>();
-        for (Follow follow : member.getFollower()) {
-            Member following = follow.getFollowing();
-            FollowDto dto = new FollowDto(following);
-            followers.add(dto);
+        Member member = memberRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
+
+        List<FollowDto> followings = new ArrayList<>();
+        for (Follow follow : followRepository.findByFollower(member)) {
+            FollowDto dto = new FollowDto(follow.getFollowing());
+            followings.add(dto);
         }
-        return followers;
+
+        return followings;
 
     }
 
 
     public List<FollowDto> getFollowings(Long userId) {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
-        List<FollowDto> followings = new ArrayList<>();
-        for (Follow follow : member.getFollowing()) {
-            Member follower = follow.getFollower();
-            FollowDto dto = new FollowDto(follower);
-            followings.add(dto);
+        List<FollowDto> followers = new ArrayList<>();
+        for (Follow follow : followRepository.findByFollowing(member)) {
+            FollowDto dto = new FollowDto(follow.getFollower());
+            followers.add(dto);
         }
-        return followings;
+
+        return followers;
     }
 
     public void addFollowing(Long userId, Long followingId) {
@@ -191,10 +203,14 @@ public class UserService {
         }
     }
 
-    public DealHistory getDealHistory(Long userId) {
-        Long buyNum = (long) bookRepository.findByBuyerId(userId).size();
-        Long sellNum = (long) bookRepository.findBySellerId(userId).size();
-        DealHistory response = new DealHistory(buyNum + sellNum);
+    public DealHistory getDealHistory(Long otherUserId, Long userId) {
+        Member user = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("not found member"));
+        Member otherUser = memberRepository.findById(otherUserId).orElseThrow(() -> new EntityNotFoundException("not found member"));
+        List<Book> sellHistory = bookRepository.findBySellerAndBuyer(user, otherUser); //해당 유저에게 판매한 기록
+        List<Book> buyHistory = bookRepository.findBySellerAndBuyer(otherUser, user);  //해당 유저 게시물의 구매 기록
+        log.info("sellHistoryNum = {}", sellHistory.size());
+        log.info("buyHistoryNum = {}", buyHistory.size());
+        DealHistory response = new DealHistory((long) (sellHistory.size() + buyHistory.size()));
         return response;
     }
 
