@@ -1,19 +1,29 @@
 package BillBook_2025_backend.backend.entity;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.Setter;
+import org.apache.catalina.User;
 
-@Getter @Setter @NoArgsConstructor
 @Entity
-@Table(name = "likes")
+@Getter
+@Setter
 public class LikeBoard {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long boardId;
-    private String userId;
-    private LocalDateTime createdAt;
+    @ManyToOne
+    private Board board;
+
+    @ManyToOne
+    private Member member;
+
+    protected LikeBoard() {}
+
+    public LikeBoard(Board board, Member member) {
+        this.board = board;
+        this.member = member;
+    }
+
 }

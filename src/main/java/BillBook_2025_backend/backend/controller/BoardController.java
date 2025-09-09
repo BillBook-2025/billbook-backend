@@ -182,6 +182,19 @@ public class BoardController {
         return ResponseEntity.ok("댓글이 삭제되었습니다.");
     }
 
+    @GetMapping("/{board_id}/like")
+    public ResponseEntity<LikeBoardResponseDto> checkLike(@PathVariable Long board_id, HttpSession session){
+        Long likeCount = boardService.checkLike(board_id);
+        return ResponseEntity.ok(new LikeBoardResponseDto(board_id, likeCount));
+    }
+
+    @PostMapping("/{board_id}/like")
+    public ResponseEntity<LikeBoardResponseDto> likePost(@PathVariable Long board_id, HttpSession session){
+        Long userId = (Long) session.getAttribute("id");
+        Long likeCount = boardService.like(board_id, userId);
+        return ResponseEntity.ok(new LikeBoardResponseDto(board_id, likeCount));
+    }
+
     // ----------- 유틸 메서드 -----------
     private String getLoginUserId(HttpSession session) {
         Object userIdObj = session.getAttribute("id");

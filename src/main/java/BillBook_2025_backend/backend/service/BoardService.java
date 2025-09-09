@@ -5,19 +5,22 @@ import BillBook_2025_backend.backend.dto.BoardRequestDto;
 import BillBook_2025_backend.backend.dto.BoardResponseDto;
 import BillBook_2025_backend.backend.dto.CommentRequestDto;
 import BillBook_2025_backend.backend.dto.CommentResponseDto;
-// import BillBook_2025_backend.backend.dto.LikeStatusDto;
+import BillBook_2025_backend.backend.dto.LikeBoardResponseDto;
 import BillBook_2025_backend.backend.entity.Board;
+import BillBook_2025_backend.backend.entity.Book;
 import BillBook_2025_backend.backend.entity.Comment;
-// import BillBook_2025_backend.backend.entity.LikeBoard;
+import BillBook_2025_backend.backend.entity.LikeBook;
+import BillBook_2025_backend.backend.entity.LikeBoard;
 import BillBook_2025_backend.backend.entity.Member;
 
 import BillBook_2025_backend.backend.exception.BoardNotFoundException;
+import BillBook_2025_backend.backend.exception.BookNotFoundException;
 // import BillBook_2025_backend.backend.exception.ConflictException;
 import BillBook_2025_backend.backend.exception.UnauthorizedException;
 
 import BillBook_2025_backend.backend.repository.BoardRepository;
 import BillBook_2025_backend.backend.repository.CommentRepository;
-// import BillBook_2025_backend.backend.repository.MemoryLikeBoardRepository;
+import BillBook_2025_backend.backend.repository.LikeBoardRepository;
 import BillBook_2025_backend.backend.repository.MemberRepository;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -31,16 +34,16 @@ import java.util.stream.Collectors;
 public class BoardService {
     private final BoardRepository boardRepo;
     private final CommentRepository commentRepo;
-    // private final MemoryLikeBoardRepository likeRepo;
+    private final LikeBoardRepository likeRepo;
     private final MemberRepository userRepository;
 
     public BoardService(BoardRepository boardRepo,
                         CommentRepository commentRepo,
-                        // MemoryLikeBoardRepository likeRepo,
+                        LikeBoardRepository likeRepo,
                         MemberRepository userRepository) {
         this.boardRepo = boardRepo;
         this.commentRepo = commentRepo;
-        // this.likeRepo = likeRepo;
+        this.likeRepo = likeRepo;
         this.userRepository = userRepository;
     }
 
@@ -177,5 +180,30 @@ public class BoardService {
         }
     
         commentRepo.delete(comment);
+    }
+
+    public Long like(Long boardId, Long userId) { //좋아요 누르기
+        Member member = userRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
+        if (boardRepo.findById(boardId).isEmpty()) {
+            throw new BoardNotFoundException("해당 게시글이 존재하지 않습니다.");
+        } else {
+            Optional<LikeBoard> existing = likeRepo.findByBoardBoardIdAndMemberId(boardId, userId);
+            if (existing.isPresent()) { //좋아요 취소
+                likeRepo.delete(existing.get());
+            } else { //좋아요
+                Board board = boardRepo.findById(boardId).get();
+                LikeBoard likeBoard = new LikeBoard(board, member);
+                likeRepo.save(likeBoard);
+            }
+            return likeRepo.countByBoardId(boardId);
+        }
+    }
+
+    public Long checkLike(Long boardId) {
+        if (boardRepo.findById(boardId).isEmpty()) {
+            throw new BoardNotFoundException("해당 게시글이 존재하지 않습니다.");
+        } else {
+            return likeRepo.countByBoardId(boardId);
+        }
     }
 }
