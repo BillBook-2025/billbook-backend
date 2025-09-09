@@ -34,8 +34,8 @@ public class Comment {
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
-
     private Long userId;
-
     private LocalDateTime createdAt;
+
+    private Boolean deleted = false; // 소프트 삭제용 필드
 }

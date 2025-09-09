@@ -201,6 +201,17 @@ public class BoardController {
         return ResponseEntity.ok(new LikeBoardResponseDto(boardId, likeCount));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<BoardResponseDto>> searchBoards(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            HttpSession session
+    ) {
+        Long userId = getLoginUserId(session);
+        List<BoardResponseDto> results = boardService.searchBoards(keyword, category, userId);
+        return ResponseEntity.ok(results);
+    }
+
     @PostMapping("/{board_id}/like/upload-images")
     public ResponseEntity<PictureDtoList> uploadImages(@PathVariable("board_id") Long boardId, 
                                                        HttpSession session,

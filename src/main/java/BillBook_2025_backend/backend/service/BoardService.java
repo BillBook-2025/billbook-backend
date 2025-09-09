@@ -65,7 +65,11 @@ public class BoardService {
         return boardRepo.findAll().stream()
             .map(board -> {
                 long likeCount = likeRepo.countByBoardId(board.getBoardId());
-                long commentsCount = commentRepo.findByBoard_BoardId(board.getBoardId()).size();
+
+                // 일케 하면 모든 댓글을 다 불러와서 그 담에 사이즈 재는거라 느림
+                // long commentsCount = commentRepo.findByBoard_BoardId(board.getBoardId()).size();
+                long commentsCount = commentRepo.countByBoard_BoardId(board.getBoardId());
+                
                 return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
             })
             .collect(Collectors.toList());
@@ -94,9 +98,8 @@ public class BoardService {
     public BoardResponseDto getById(Long boardId, Long userId) {
         Board board = boardRepo.findById(boardId)
             .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
-
         long likeCount = likeRepo.countByBoardId(boardId); 
-        long commentsCount = commentRepo.findByBoard_BoardId(board.getBoardId()).size();
+        long commentsCount = commentRepo.countByBoard_BoardId(board.getBoardId());
         return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
     }
 
@@ -104,8 +107,6 @@ public class BoardService {
     public BoardResponseDto update(Long boardId, BoardRequestDto dto, Long userId) {
         Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
-        // Member user = userRepository.findByUserId(userId)
-        //     .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
 
         Board board = boardRepo.findById(boardId)
             .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
@@ -120,8 +121,8 @@ public class BoardService {
         board.setContent(dto.getContent());
         boardRepo.save(board);
 
-        long likeCount = 0; //likeRepo.countByBoardId(boardId);
-        long commentsCount = commentRepo.findByBoard_BoardId(board.getBoardId()).size();
+        long likeCount = likeRepo.countByBoardId(boardId);
+        long commentsCount = commentRepo.countByBoard_BoardId(board.getBoardId());
         return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
     }
 
@@ -142,15 +143,9 @@ public class BoardService {
 
     // 특정 게시글의 댓글 조회
     public List<CommentResponseDto> getCommentsByBoardId(Long boardId) {
-        List<Comment> comments = commentRepo.findByBoard_BoardId(boardId);
-
-        // // 만약에 부모 댓글이 삭제되면 어케 처리할까
-        // for(int i = 0; i < comments.size(); i++) {
-        //     if(commentRepo.findById(comments.get(i).getReplyTo().getCommentId()) == null) {
-        //         // 흠..
-        //     }
-        // }
-
+        // List<Comment> comments = commentRepo.findByBoard_BoardId(boardId);
+        List<Comment> comments = commentRepo.findByBoard_BoardIdAndDeletedFalse(boardId);
+        
         return comments.stream()
             .map(CommentResponseDto::fromEntity)
             .collect(Collectors.toList());
@@ -184,10 +179,12 @@ public class BoardService {
             .orElseThrow(() -> new IllegalArgumentException("접근 불가능한 댓글입니다"));
     
         if (!comment.getUserId().equals(userId)) {
-            throw new AccessDeniedException("수정 권한이 없습니다.");
+            throw new AccessDeniedException("삭제 권한이 없습니다.");
         }
     
-        commentRepo.delete(comment);
+        // commentRepo.delete(comment);
+        comment.setDeleted(true);  // soft delete로 수정
+        commentRepo.save(comment); // DB 반영
     }
 
     public Long like(Long boardId, Long userId) { //좋아요 누르기
@@ -215,6 +212,20 @@ public class BoardService {
         }
     }
 
+    public List<BoardResponseDto> searchBoards(String keyword, String category, Long userId) {
+        // DB에서 조건에 맞는 게시글 조회
+        List<Board> boards = null; //boardRepo.findByKeywordAndCategory(keyword, category);
+    
+        // Stream으로 돌면서 각 게시글에 대해 Board -> BoardResponseDto 변환
+        return boards.stream()
+                     .map(board -> {
+                         long likeCount = likeRepo.countByBoardId(board.getBoardId());
+                         long commentsCount = commentRepo.countByBoard_BoardId(board.getBoardId());
+                         return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
+                     })
+                     .collect(Collectors.toList());
+    }
+    
     @Transactional
     public PictureDtoList uploadImages(Long boardId, Long userId, List<MultipartFile> files) throws IOException {
         Member user = userRepository.findById(userId)
