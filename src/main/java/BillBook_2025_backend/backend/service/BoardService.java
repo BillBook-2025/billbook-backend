@@ -195,12 +195,13 @@ public class BoardService {
         commentRepo.delete(comment);
     }
 
-    public Long like(Long boardId, Long userId) { //좋아요 누르기
-        Member member = userRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
+    public Long like(Long boardId, String userId) { //좋아요 누르기
+        Long id = Long.valueOf(userId); // userId를 Long으로 변환
+        Member member = userRepository.findById(id).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
         if (boardRepo.findById(boardId).isEmpty()) {
             throw new BoardNotFoundException("해당 게시글이 존재하지 않습니다.");
         } else {
-            Optional<LikeBoard> existing = likeRepo.findByBoardBoardIdAndMemberId(boardId, userId);
+            Optional<LikeBoard> existing = likeRepo.findByBoardBoardIdAndMemberId(boardId, id);
             if (existing.isPresent()) { //좋아요 취소
                 likeRepo.delete(existing.get());
             } else { //좋아요
@@ -221,7 +222,7 @@ public class BoardService {
     }
 
     @Transactional
-    public PictureDtoList uploadImages(Long boardId, Long userId, List<MultipartFile> files) throws IOException {
+    public PictureDtoList uploadImages(Long boardId, String userId, List<MultipartFile> files) throws IOException {
         // Board board = boardRepo.findById(boardId).orElseThrow(() -> new EntityNotFoundException("해당 게시물을 찾을 수 없습니다."));
         Long id = Long.valueOf(userId); // userId를 Long으로 변환
         Member user = userRepository.findById(id)
@@ -245,7 +246,7 @@ public class BoardService {
         return response;
     }
 
-    public void deleteImages(PictureDto request, Long boardId, Long userId) {
+    public void deleteImages(PictureDto request, Long boardId, String userId) {
         Long id = Long.valueOf(userId); // userId를 Long으로 변환
         Member user = userRepository.findById(id)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));

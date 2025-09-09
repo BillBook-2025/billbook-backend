@@ -186,29 +186,35 @@ public class BoardController {
 
     // 게시글 좋아요 수 확인
     @GetMapping("/{board_id}/like")
-    public ResponseEntity<LikeBoardResponseDto> checkLike(@PathVariable Long boardId, HttpSession session){
+    public ResponseEntity<LikeBoardResponseDto> checkLike(@PathVariable("board_id") Long boardId, 
+                                                          HttpSession session){
         Long likeCount = boardService.checkLike(boardId);
         return ResponseEntity.ok(new LikeBoardResponseDto(boardId, likeCount));
     }
 
     // 게시글 좋아요 누르기
     @PostMapping("/{board_id}/like")
-    public ResponseEntity<LikeBoardResponseDto> likePost(@PathVariable Long boardId, HttpSession session){
-        Long userId = (Long) session.getAttribute("id");
+    public ResponseEntity<LikeBoardResponseDto> likePost(@PathVariable("board_id") Long boardId, 
+                                                         HttpSession session){
+        String userId = getLoginUserId(session);
         Long likeCount = boardService.like(boardId, userId);
         return ResponseEntity.ok(new LikeBoardResponseDto(boardId, likeCount));
     }
 
     @PostMapping("/{board_id}/like/upload-images")
-    public ResponseEntity<PictureDtoList> uploadImages(@PathVariable Long boardId, HttpSession session, @RequestPart List<MultipartFile> files) throws IOException {
-        Long userId = (Long) session.getAttribute("id");
+    public ResponseEntity<PictureDtoList> uploadImages(@PathVariable("board_id") Long boardId, 
+                                                       HttpSession session,
+                                                       @RequestPart List<MultipartFile> files) throws IOException {
+        String userId = getLoginUserId(session);
         PictureDtoList pictureDtoList = boardService.uploadImages(boardId, userId, files);
         return ResponseEntity.ok(pictureDtoList);
     }
 
     @DeleteMapping("/{board_id}/like/upload-images")
-    public ResponseEntity<String> deleteImages(@PathVariable Long boardId, HttpSession session, @RequestBody PictureDto request) {
-        Long userId = (Long) session.getAttribute("id");
+    public ResponseEntity<String> deleteImages(@PathVariable("board_id") Long boardId, 
+                                               HttpSession session, 
+                                               @RequestBody PictureDto request) {
+        String userId = getLoginUserId(session);
         boardService.deleteImages(request, boardId, userId);
         return ResponseEntity.ok("ok");
     }
