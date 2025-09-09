@@ -35,7 +35,7 @@ public class Comment {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    private String userId;
+    private Long userId;
 
     private LocalDateTime createdAt;
 }

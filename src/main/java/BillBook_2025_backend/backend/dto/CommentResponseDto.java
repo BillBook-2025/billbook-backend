@@ -12,7 +12,7 @@ public class CommentResponseDto {
     private Long boardId;
     private Long replyTo;
     private String content;
-    private String userId;
+    private Long userId;
     private LocalDateTime createdAt;
 
     public static CommentResponseDto fromEntity(BillBook_2025_backend.backend.entity.Comment comment) {

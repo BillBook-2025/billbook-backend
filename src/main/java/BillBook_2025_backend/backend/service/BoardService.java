@@ -72,9 +72,8 @@ public class BoardService {
     }
 
     // 게시글 등록
-    public BoardResponseDto create(BoardRequestDto dto, String userId) {
-        Long id = Long.valueOf(userId); // userId를 Long으로 변환
-        Member user = userRepository.findById(id)
+    public BoardResponseDto create(BoardRequestDto dto, Long userId) {
+        Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
         // Member user = userRepository.findByUserId(userId)
         //     .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
@@ -92,7 +91,7 @@ public class BoardService {
     }
 
     // 게시글 상세 조회
-    public BoardResponseDto getById(Long boardId, String userId) {
+    public BoardResponseDto getById(Long boardId, Long userId) {
         Board board = boardRepo.findById(boardId)
             .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
 
@@ -102,9 +101,8 @@ public class BoardService {
     }
 
     // 게시글 수정
-    public BoardResponseDto update(Long boardId, BoardRequestDto dto, String userId) {
-        Long id = Long.valueOf(userId); // userId를 Long으로 변환
-        Member user = userRepository.findById(id)
+    public BoardResponseDto update(Long boardId, BoardRequestDto dto, Long userId) {
+        Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
         // Member user = userRepository.findByUserId(userId)
         //     .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
@@ -128,12 +126,9 @@ public class BoardService {
     }
 
     // 게시글 삭제
-    public void delete(Long boardId, String userId) {
-        Long id = Long.valueOf(userId); // userId를 Long으로 변환
-        Member user = userRepository.findById(id)
+    public void delete(Long boardId, Long userId) {
+        Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
-        // Member user = userRepository.findByUserId(userId)
-        //     .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
 
         Board board = boardRepo.findById(boardId)
             .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
@@ -162,7 +157,7 @@ public class BoardService {
     }
 
     // 댓글 등록
-    public CommentResponseDto saveComment(Long boardId, CommentRequestDto dto, Long replyToId, String userId) {
+    public CommentResponseDto saveComment(Long boardId, CommentRequestDto dto, Long replyToId, Long userId) {
         Board board = boardRepo.findById(boardId)
             .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
     
@@ -184,7 +179,7 @@ public class BoardService {
     }
 
     // 특정 댓글 삭제 (댓글 작성자만 가능)
-    public void deleteComment(Long commentId, String userId) {
+    public void deleteComment(Long commentId, Long userId) {
         Comment comment = commentRepo.findById(commentId)
             .orElseThrow(() -> new IllegalArgumentException("접근 불가능한 댓글입니다"));
     
@@ -195,13 +190,12 @@ public class BoardService {
         commentRepo.delete(comment);
     }
 
-    public Long like(Long boardId, String userId) { //좋아요 누르기
-        Long id = Long.valueOf(userId); // userId를 Long으로 변환
-        Member member = userRepository.findById(id).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
+    public Long like(Long boardId, Long userId) { //좋아요 누르기
+        Member member = userRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
         if (boardRepo.findById(boardId).isEmpty()) {
             throw new BoardNotFoundException("해당 게시글이 존재하지 않습니다.");
         } else {
-            Optional<LikeBoard> existing = likeRepo.findByBoardBoardIdAndMemberId(boardId, id);
+            Optional<LikeBoard> existing = likeRepo.findByBoardBoardIdAndMemberId(boardId, userId);
             if (existing.isPresent()) { //좋아요 취소
                 likeRepo.delete(existing.get());
             } else { //좋아요
@@ -222,10 +216,8 @@ public class BoardService {
     }
 
     @Transactional
-    public PictureDtoList uploadImages(Long boardId, String userId, List<MultipartFile> files) throws IOException {
-        // Board board = boardRepo.findById(boardId).orElseThrow(() -> new EntityNotFoundException("해당 게시물을 찾을 수 없습니다."));
-        Long id = Long.valueOf(userId); // userId를 Long으로 변환
-        Member user = userRepository.findById(id)
+    public PictureDtoList uploadImages(Long boardId, Long userId, List<MultipartFile> files) throws IOException {
+        Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
 
         Board board = boardRepo.findById(boardId)
@@ -246,9 +238,8 @@ public class BoardService {
         return response;
     }
 
-    public void deleteImages(PictureDto request, Long boardId, String userId) {
-        Long id = Long.valueOf(userId); // userId를 Long으로 변환
-        Member user = userRepository.findById(id)
+    public void deleteImages(PictureDto request, Long boardId, Long userId) {
+        Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
         
         Board board = boardRepo.findById(boardId)

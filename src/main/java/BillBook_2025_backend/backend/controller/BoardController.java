@@ -121,14 +121,14 @@ public class BoardController {
     // 게시글 등록
     @PostMapping
     public ResponseEntity<BoardResponseDto> postBoard(@RequestBody BoardRequestDto dto, HttpSession session) {
-        String userId = getLoginUserId(session);
+        Long userId = getLoginUserId(session);
         return ResponseEntity.ok(boardService.create(dto, userId));
     }
 
     // 특정 게시글 조회
     @GetMapping("/{board_id}")
     public ResponseEntity<BoardResponseDto> getBoard(@PathVariable("board_id") Long boardId, HttpSession session) {
-        String userId = getLoginUserId(session);
+        Long userId = getLoginUserId(session);
         return ResponseEntity.ok(boardService.getById(boardId, userId));
     }
 
@@ -137,14 +137,14 @@ public class BoardController {
     public ResponseEntity<BoardResponseDto> updateBoard(@PathVariable("board_id") Long boardId, 
                                                         @RequestBody BoardRequestDto dto, 
                                                         HttpSession session) {
-        String userId = getLoginUserId(session);
+        Long userId = getLoginUserId(session);
         return ResponseEntity.ok(boardService.update(boardId, dto, userId));
     }
 
     // 게시글 삭제
     @DeleteMapping("/{board_id}")
     public ResponseEntity<String> deletePost(@PathVariable("board_id") Long boardId, HttpSession session) {
-        String userId = getLoginUserId(session);
+        Long userId = getLoginUserId(session);
         boardService.delete(boardId, userId);
         return ResponseEntity.ok("게시물이 삭제되었습니다.");
     }
@@ -160,7 +160,7 @@ public class BoardController {
     public ResponseEntity<CommentResponseDto> postComment(@PathVariable("board_id") Long boardId, 
                                                           @RequestBody CommentRequestDto dto, 
                                                           HttpSession session) {
-        String userId = getLoginUserId(session);
+        Long userId = getLoginUserId(session);
         return ResponseEntity.ok(boardService.saveComment(boardId, dto, null, userId));
     }
 
@@ -170,7 +170,7 @@ public class BoardController {
                                                         @RequestBody CommentRequestDto dto,
                                                         @PathVariable("comment_id") Long replyToId,
                                                         HttpSession session) {
-        String userId = getLoginUserId(session);
+        Long userId = getLoginUserId(session);
         return ResponseEntity.ok(boardService.saveComment(boardId, dto, replyToId, userId));
     }
 
@@ -179,7 +179,7 @@ public class BoardController {
     public ResponseEntity<String> deleteComment(@PathVariable("board_id") Long boardId,
                                                 @PathVariable("comment_id") Long commentId,
                                                 HttpSession session) {
-        String userId = getLoginUserId(session);
+        Long userId = getLoginUserId(session);
         boardService.deleteComment(commentId, userId);
         return ResponseEntity.ok("댓글이 삭제되었습니다.");
     }
@@ -196,7 +196,7 @@ public class BoardController {
     @PostMapping("/{board_id}/like")
     public ResponseEntity<LikeBoardResponseDto> likePost(@PathVariable("board_id") Long boardId, 
                                                          HttpSession session){
-        String userId = getLoginUserId(session);
+        Long userId = getLoginUserId(session);
         Long likeCount = boardService.like(boardId, userId);
         return ResponseEntity.ok(new LikeBoardResponseDto(boardId, likeCount));
     }
@@ -205,7 +205,7 @@ public class BoardController {
     public ResponseEntity<PictureDtoList> uploadImages(@PathVariable("board_id") Long boardId, 
                                                        HttpSession session,
                                                        @RequestPart List<MultipartFile> files) throws IOException {
-        String userId = getLoginUserId(session);
+        Long userId = getLoginUserId(session);
         PictureDtoList pictureDtoList = boardService.uploadImages(boardId, userId, files);
         return ResponseEntity.ok(pictureDtoList);
     }
@@ -214,18 +214,21 @@ public class BoardController {
     public ResponseEntity<String> deleteImages(@PathVariable("board_id") Long boardId, 
                                                HttpSession session, 
                                                @RequestBody PictureDto request) {
-        String userId = getLoginUserId(session);
+        Long userId = getLoginUserId(session);
         boardService.deleteImages(request, boardId, userId);
         return ResponseEntity.ok("ok");
     }
 
     // ----------- 유틸 메서드 -----------
-    private String getLoginUserId(HttpSession session) {
+    // private String getLoginUserId(HttpSession session) {
+    private Long getLoginUserId(HttpSession session) {
         Object userIdObj = session.getAttribute("id");
         if (userIdObj == null) {
             // 로그인 안 되어 있으면 401 Unauthorized 반환
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
-        return userIdObj.toString();
+        String userId = userIdObj.toString();
+        return Long.valueOf(userId); // userId를 Long으로 변환
+        //return userIdObj.toString();
     }
 }
