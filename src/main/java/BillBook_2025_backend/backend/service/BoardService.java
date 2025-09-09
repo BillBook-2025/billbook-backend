@@ -6,13 +6,15 @@ import BillBook_2025_backend.backend.dto.BoardResponseDto;
 import BillBook_2025_backend.backend.dto.CommentRequestDto;
 import BillBook_2025_backend.backend.dto.CommentResponseDto;
 import BillBook_2025_backend.backend.dto.LikeBoardResponseDto;
+import BillBook_2025_backend.backend.dto.PictureDto;
+import BillBook_2025_backend.backend.dto.PictureDtoList;
 import BillBook_2025_backend.backend.entity.Board;
 import BillBook_2025_backend.backend.entity.Book;
 import BillBook_2025_backend.backend.entity.Comment;
 import BillBook_2025_backend.backend.entity.LikeBook;
 import BillBook_2025_backend.backend.entity.LikeBoard;
 import BillBook_2025_backend.backend.entity.Member;
-
+import BillBook_2025_backend.backend.entity.Picture;
 import BillBook_2025_backend.backend.exception.BoardNotFoundException;
 import BillBook_2025_backend.backend.exception.BookNotFoundException;
 // import BillBook_2025_backend.backend.exception.ConflictException;
@@ -22,10 +24,15 @@ import BillBook_2025_backend.backend.repository.BoardRepository;
 import BillBook_2025_backend.backend.repository.CommentRepository;
 import BillBook_2025_backend.backend.repository.LikeBoardRepository;
 import BillBook_2025_backend.backend.repository.MemberRepository;
+import BillBook_2025_backend.backend.repository.PictureRepository;
+import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,15 +43,21 @@ public class BoardService {
     private final CommentRepository commentRepo;
     private final LikeBoardRepository likeRepo;
     private final MemberRepository userRepository;
+    private final S3UploadService s3UploadService;
+    private final PictureRepository pictureRepository;
 
     public BoardService(BoardRepository boardRepo,
                         CommentRepository commentRepo,
                         LikeBoardRepository likeRepo,
-                        MemberRepository userRepository) {
+                        MemberRepository userRepository,
+                        S3UploadService s3UploadService,
+                        PictureRepository pictureRepository) {
         this.boardRepo = boardRepo;
         this.commentRepo = commentRepo;
         this.likeRepo = likeRepo;
         this.userRepository = userRepository;
+        this.s3UploadService = s3UploadService;
+        this.pictureRepository = pictureRepository;
     }
 
     // 전체 게시글 조회
@@ -205,5 +218,49 @@ public class BoardService {
         } else {
             return likeRepo.countByBoardId(boardId);
         }
+    }
+
+    @Transactional
+    public PictureDtoList uploadImages(Long boardId, Long userId, List<MultipartFile> files) throws IOException {
+        // Board board = boardRepo.findById(boardId).orElseThrow(() -> new EntityNotFoundException("해당 게시물을 찾을 수 없습니다."));
+        Long id = Long.valueOf(userId); // userId를 Long으로 변환
+        Member user = userRepository.findById(id)
+                .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
+
+        Board board = boardRepo.findById(boardId)
+            .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
+
+        if (!board.getUserId().equals(user.getUserId())) {
+            throw new AccessDeniedException("삭제 권한이 없습니다.");
+        }
+
+        List<PictureDto> pictureDtos = new ArrayList<>();
+        for (MultipartFile file : files) {
+            PictureDto request = s3UploadService.saveFile(file);
+            Picture picture = new Picture(request.getFilename(), request.getUrl(), board);
+            board.getPicture().add(picture);
+            pictureDtos.add(request);
+        }
+        PictureDtoList response = new PictureDtoList(pictureDtos);  //파일명도 줘야하나
+        return response;
+    }
+
+    public void deleteImages(PictureDto request, Long boardId, Long userId) {
+        Long id = Long.valueOf(userId); // userId를 Long으로 변환
+        Member user = userRepository.findById(id)
+                .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
+        
+        Board board = boardRepo.findById(boardId)
+                .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
+                
+        if (!board.getUserId().equals(user.getUserId())) {
+            throw new AccessDeniedException("삭제 권한이 없습니다.");
+        }
+
+        String filename = request.getFilename();
+        Picture picture = pictureRepository.findByFilename(filename)
+                .orElseThrow(() -> new EntityNotFoundException(filename + "가 존재하지 않습니다."));
+        pictureRepository.delete(picture);
+        s3UploadService.deleteImage(filename);
     }
 }

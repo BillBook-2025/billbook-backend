@@ -4,7 +4,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import BillBook_2025_backend.backend.entity.Board;
+import BillBook_2025_backend.backend.entity.Picture;
 
 @Getter @Setter @NoArgsConstructor
 public class BoardResponseDto {
@@ -12,6 +16,8 @@ public class BoardResponseDto {
     private String title;
     private String category;
     private String isbn; // 책 정보
+    // private String boardPic;  //자료형 나중에 체크
+    private List<PictureDto> boardPic = new ArrayList<>();;  //자료형 나중에 체크
     private String content;
     private String userId;
     private LocalDateTime createdAt;
@@ -29,6 +35,14 @@ public class BoardResponseDto {
         dto.setCreatedAt(board.getCreatedAt());
         dto.setLikeCount(likeCount);
         dto.setCommentsCount(commentsCount);
+
+        if (board.getPicture() != null) {
+            for (Picture picture : board.getPicture()) {
+                PictureDto picDto = new PictureDto(picture.getUrl(), picture.getFilename());
+                dto.getBoardPic().add(picDto);
+            }
+        }
+
         return dto;
     }
 }

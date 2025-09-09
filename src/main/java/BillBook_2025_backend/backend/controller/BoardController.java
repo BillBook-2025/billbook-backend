@@ -10,8 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.List;
 
 // @RestController
@@ -182,17 +184,33 @@ public class BoardController {
         return ResponseEntity.ok("댓글이 삭제되었습니다.");
     }
 
+    // 게시글 좋아요 수 확인
     @GetMapping("/{board_id}/like")
-    public ResponseEntity<LikeBoardResponseDto> checkLike(@PathVariable Long board_id, HttpSession session){
-        Long likeCount = boardService.checkLike(board_id);
-        return ResponseEntity.ok(new LikeBoardResponseDto(board_id, likeCount));
+    public ResponseEntity<LikeBoardResponseDto> checkLike(@PathVariable Long boardId, HttpSession session){
+        Long likeCount = boardService.checkLike(boardId);
+        return ResponseEntity.ok(new LikeBoardResponseDto(boardId, likeCount));
     }
 
+    // 게시글 좋아요 누르기
     @PostMapping("/{board_id}/like")
-    public ResponseEntity<LikeBoardResponseDto> likePost(@PathVariable Long board_id, HttpSession session){
+    public ResponseEntity<LikeBoardResponseDto> likePost(@PathVariable Long boardId, HttpSession session){
         Long userId = (Long) session.getAttribute("id");
-        Long likeCount = boardService.like(board_id, userId);
-        return ResponseEntity.ok(new LikeBoardResponseDto(board_id, likeCount));
+        Long likeCount = boardService.like(boardId, userId);
+        return ResponseEntity.ok(new LikeBoardResponseDto(boardId, likeCount));
+    }
+
+    @PostMapping("/{board_id}/like/upload-images")
+    public ResponseEntity<PictureDtoList> uploadImages(@PathVariable Long boardId, HttpSession session, @RequestPart List<MultipartFile> files) throws IOException {
+        Long userId = (Long) session.getAttribute("id");
+        PictureDtoList pictureDtoList = boardService.uploadImages(boardId, userId, files);
+        return ResponseEntity.ok(pictureDtoList);
+    }
+
+    @DeleteMapping("/{board_id}/like/upload-images")
+    public ResponseEntity<String> deleteImages(@PathVariable Long boardId, HttpSession session, @RequestBody PictureDto request) {
+        Long userId = (Long) session.getAttribute("id");
+        boardService.deleteImages(request, boardId, userId);
+        return ResponseEntity.ok("ok");
     }
 
     // ----------- 유틸 메서드 -----------

@@ -5,6 +5,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter @Setter @NoArgsConstructor
 @Entity
@@ -19,4 +21,7 @@ public class Board {
     private LocalDateTime createdAt; // 언제 작성
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Picture> picture = new ArrayList<>();
 }
