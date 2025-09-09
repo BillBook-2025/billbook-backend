@@ -64,7 +64,7 @@ public class BoardService {
     public List<BoardResponseDto> findAll() {    
         return boardRepo.findAll().stream()
             .map(board -> {
-                long likeCount = 0; //likeRepo.countByBoardId(board.getBoardId());
+                long likeCount = likeRepo.countByBoardId(board.getBoardId());
                 long commentsCount = commentRepo.findByBoard_BoardId(board.getBoardId()).size();
                 return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
             })
@@ -95,7 +95,7 @@ public class BoardService {
         Board board = boardRepo.findById(boardId)
             .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
 
-        long likeCount = 0; //likeRepo.countByBoardId(boardId); 
+        long likeCount = likeRepo.countByBoardId(boardId); 
         long commentsCount = commentRepo.findByBoard_BoardId(board.getBoardId()).size();
         return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
     }
