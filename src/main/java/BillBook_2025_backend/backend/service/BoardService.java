@@ -171,7 +171,7 @@ public class BoardService {
             if (Boolean.TRUE.equals(parentComment.getDeleted())) {
                 throw new ResponseStatusException(HttpStatus.GONE, "부모 댓글이 이미 삭제되었습니다.");
             }
-            
+
             comment.setReplyTo(parentComment);
         }
     
@@ -223,9 +223,9 @@ public class BoardService {
         }
     }
 
-    public List<BoardResponseDto> searchBoards(String keyword, String category, Long userId) {
+    public List<BoardResponseDto> searchBoards(String titleKeyword, String contentKeyword, String category) {
         // DB에서 조건에 맞는 게시글 조회
-        List<Board> boards = null; //boardRepo.findByKeywordAndCategory(keyword, category);
+        List<Board> boards = boardRepo.findByTitleContainingOrContentContainingOrCategory(titleKeyword, contentKeyword, category);
     
         // Stream으로 돌면서 각 게시글에 대해 Board -> BoardResponseDto 변환
         return boards.stream()

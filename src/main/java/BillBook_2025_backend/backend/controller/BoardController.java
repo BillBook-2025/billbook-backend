@@ -203,12 +203,12 @@ public class BoardController {
 
     @GetMapping("/search")
     public ResponseEntity<List<BoardResponseDto>> searchBoards(
-            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String titleKeyword,
+            @RequestParam(required = false) String contentKeyword,
             @RequestParam(required = false) String category,
             HttpSession session
     ) {
-        Long userId = getLoginUserId(session);
-        List<BoardResponseDto> results = boardService.searchBoards(keyword, category, userId);
+        List<BoardResponseDto> results = boardService.searchBoards(titleKeyword, contentKeyword, category);
         return ResponseEntity.ok(results);
     }
 
