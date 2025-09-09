@@ -8,8 +8,8 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    // List<Comment> findByBoard_BoardId(Long boardId);
-    List<Comment> findByBoard_BoardIdAndDeletedFalse(Long boardId); // 삭제된 댓글은 제외
+    // List<Comment> findByBoard_BoardIdAndDeletedFalse(Long boardId); // 삭제된 댓글은 제외
+    List<Comment> findByBoard_BoardId(Long boardId);
 
     List<Comment> findByReplyTo_CommentId(Long commentId); // 특정 댓글의 대댓 목록
     

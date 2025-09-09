@@ -31,11 +31,14 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class BoardService {
@@ -143,9 +146,8 @@ public class BoardService {
 
     // 특정 게시글의 댓글 조회
     public List<CommentResponseDto> getCommentsByBoardId(Long boardId) {
-        // List<Comment> comments = commentRepo.findByBoard_BoardId(boardId);
-        List<Comment> comments = commentRepo.findByBoard_BoardIdAndDeletedFalse(boardId);
-        
+        List<Comment> comments = commentRepo.findByBoard_BoardId(boardId);
+    
         return comments.stream()
             .map(CommentResponseDto::fromEntity)
             .collect(Collectors.toList());
@@ -165,6 +167,11 @@ public class BoardService {
         if (replyToId != null) {
             Comment parentComment = commentRepo.findById(replyToId)
                 .orElseThrow(() -> new IllegalArgumentException("부모 댓글이 존재하지 않습니다."));
+
+            if (Boolean.TRUE.equals(parentComment.getDeleted())) {
+                throw new ResponseStatusException(HttpStatus.GONE, "부모 댓글이 이미 삭제되었습니다.");
+            }
+            
             comment.setReplyTo(parentComment);
         }
     
@@ -178,6 +185,10 @@ public class BoardService {
         Comment comment = commentRepo.findById(commentId)
             .orElseThrow(() -> new IllegalArgumentException("접근 불가능한 댓글입니다"));
     
+        if (Boolean.TRUE.equals(comment.getDeleted())) {
+            throw new ResponseStatusException(HttpStatus.GONE, "이미 삭제된 댓글입니다.");
+        }
+
         if (!comment.getUserId().equals(userId)) {
             throw new AccessDeniedException("삭제 권한이 없습니다.");
         }
