@@ -47,7 +47,6 @@ public class BookController {
         return ResponseEntity.ok(bookService.getBookDetail(bookId, userId));
     }
 
-<<<<<<< HEAD
     @PatchMapping(
             value = "/api/books/{bookId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
