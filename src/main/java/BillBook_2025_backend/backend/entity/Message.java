@@ -20,11 +20,12 @@ public class Message {
     private String message;
 
     private LocalDateTime sendAt;
+    private LocalDateTime readAt;
 
     @Enumerated(EnumType.STRING)
     private MessageType type;
 
-    private boolean isRead = false;
+
 
     @ManyToOne
     private ChatRoom chatRoom;
@@ -38,5 +39,13 @@ public class Message {
 
     public void setExitMessage() {
         this.message = "[ " + MessageType.LEAVE + " ] " + this.sender;
+    }
+
+    public Message (String message, MessageType type, ChatRoom chatRoom, Member sender) {
+        this.message = message;
+        this.type = type;
+        this.chatRoom = chatRoom;
+        this.sender = sender;
+        this.sendAt = LocalDateTime.now();
     }
 }

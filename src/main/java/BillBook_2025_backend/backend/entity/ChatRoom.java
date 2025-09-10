@@ -38,6 +38,19 @@ public class ChatRoom {
     @OneToMany
     private List<Message> messages;
 
+    @Builder
+    public ChatRoom(String name, Member buyer, Member seller, Book book) {
+        this.name = name;
+        this.buyer = buyer;
+        this.seller = seller;
+        this.book = book;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public boolean hasParticipants(Long userId) {
+        return (buyer != null && buyer.getId().equals(userId)) || (seller != null && seller.getId().equals(userId));
+    }
+
     @Transient
     private Set<WebSocketSession> sessions = new HashSet<>();
 

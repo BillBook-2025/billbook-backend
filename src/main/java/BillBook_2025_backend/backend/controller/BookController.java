@@ -8,12 +8,14 @@ import BillBook_2025_backend.backend.service.BookService;
 import BillBook_2025_backend.backend.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class BookController {
@@ -29,7 +31,7 @@ public class BookController {
     }
 
     @GetMapping("/api/books")
-    public ResponseEntity<List<Book>> showAllBooks(HttpSession session){
+    public ResponseEntity<List<BookResponse>> showAllBooks(HttpSession session){
         Long userId = (Long) session.getAttribute("id");
         if (userId == null) {
             throw new UnauthorizedException("로그인이 필요합니다.");
@@ -39,81 +41,85 @@ public class BookController {
     }
 
 
-    @GetMapping("/api/books/{book_id}")
-    public ResponseEntity<Book> showBook(@PathVariable Long book_id, HttpSession session){
+    @GetMapping("/api/books/{bookId}")
+    public ResponseEntity<BookResponse> showBook(@PathVariable Long bookId, HttpSession session){
         Long userId = (Long) session.getAttribute("id");
-        return ResponseEntity.ok(bookService.getBookDetail(book_id, userId));
+        return ResponseEntity.ok(bookService.getBookDetail(bookId, userId));
     }
 
-    @PatchMapping("/api/books/{book_id}")
-    public ResponseEntity<Book> updateBook(@PathVariable Long book_id,@RequestBody Book book, HttpSession session
-                                           ,@RequestPart(value = "deleteImages", required = false) List<String> deleteImages
-                                           ,@RequestPart(value = "newImages", required = false) List<MultipartFile> files) throws IOException {
+    @PatchMapping(
+            value = "/api/books/{bookId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<Map<String, String>> updateBook(@PathVariable Long bookId, @RequestPart("book") BookPostRequestDto book, HttpSession session
+                                           , @RequestPart(value = "deleteImages", required = false) List<String> deleteImages
+                                           , @RequestPart(value = "newImages", required = false) List<MultipartFile> files) throws IOException {
         Long userId = (Long) session.getAttribute("id");
-        return ResponseEntity.ok(bookService.updateBookDetail(book, book_id, userId, deleteImages, files));
+        bookService.updateBookDetail(book, bookId, userId, deleteImages, files);
+        return ResponseEntity.ok(Map.of("message", "거래글이 수정되었습니다."));
     }
 
-    @GetMapping("/api/books/{book_id}/like")
-    public ResponseEntity<LikeBookResponseDto> checkLike(@PathVariable Long book_id, HttpSession session){
-        Long likeCount = bookService.checkLike(book_id);
-        return ResponseEntity.ok(new LikeBookResponseDto(book_id, likeCount));
+    @GetMapping("/api/books/{bookId}/like")
+    public ResponseEntity<LikeBookResponseDto> checkLike(@PathVariable Long bookId, HttpSession session){
+        Long likeCount = bookService.checkLike(bookId);
+        return ResponseEntity.ok(new LikeBookResponseDto(bookId, likeCount));
     }
 
-    @PostMapping("/api/books/{book_id}/like")
-    public ResponseEntity<LikeBookResponseDto> likePost(@PathVariable Long book_id, HttpSession session){
+    @PostMapping("/api/books/{bookId}/like")
+    public ResponseEntity<LikeBookResponseDto> likePost(@PathVariable Long bookId, HttpSession session){
         Long userId = (Long) session.getAttribute("id");
-        Long likeCount = bookService.like(book_id, userId);
-        return ResponseEntity.ok(new LikeBookResponseDto(book_id, likeCount));
+        Long likeCount = bookService.like(bookId, userId);
+        return ResponseEntity.ok(new LikeBookResponseDto(bookId, likeCount));
     }
 
 
 
     @ResponseBody
-    @GetMapping("/api/books/register/openAPI")
+    @GetMapping("/api/books/register/new/info")
     public List<BookItem> useBookOpenAPI(@RequestParam String keyword) {
         return apiSearchingBook.searchBook(keyword);
     }
 
     @PostMapping("/api/books/register/new")
-    public ResponseEntity<String> register(@RequestBody BookPostRequestDto dto, HttpSession session, @RequestPart List<MultipartFile> files) throws IOException {
+    public ResponseEntity<String> register(@RequestPart("book") BookPostRequestDto dto, HttpSession session, @RequestPart("images") List<MultipartFile> files) throws IOException {
         Long userId = (Long) session.getAttribute("id");
         bookService.register(dto, userId, files);
         return ResponseEntity.ok("게시글이 성공적으로 등록되었습니다.");
     }
 
-    @PostMapping("/api/books/{book_id}/borrow")
-    public ResponseEntity<String> borrow(@PathVariable Long book_id, HttpSession session) {
+    @PostMapping("/api/books/{bookId}/borrow")
+    public ResponseEntity<String> borrow(@PathVariable Long bookId, HttpSession session) {
         Long userId = (Long) session.getAttribute("id");
-        bookService.borrow(book_id, userId);
+        bookService.borrow(bookId, userId);
         return ResponseEntity.ok("대출 신청이 완료되었습니다.");
     }
 
-    @DeleteMapping("/api/books/{book_id}")
-    public ResponseEntity<String> deletePost(@PathVariable Long book_id, HttpSession session) {
+    @DeleteMapping("/api/books/{bookId}")
+    public ResponseEntity<String> deletePost(@PathVariable Long bookId, HttpSession session) {
         Long userId = (Long) session.getAttribute("id");
-        bookService.delete(book_id, userId);
+        bookService.delete(bookId, userId);
         return ResponseEntity.ok("게시물이 삭제되었습니다.");
     }
 
-    @PostMapping("/api/books/{book_id}/return")
-    public ResponseEntity<String> returnBook(@PathVariable Long book_id, HttpSession session) {
+    @PostMapping("/api/books/{bookId}/existing")
+    public ResponseEntity<BookDto> returnBook(@PathVariable Long bookId, HttpSession session) {
         Long userId = (Long) session.getAttribute("id");
-        bookService.returnBook(book_id, userId);
-        return ResponseEntity.ok("반납처리가 완료되었습니다.");
+        BookDto bookResponse = bookService.returnBook(bookId, userId);
+        return ResponseEntity.ok(bookResponse);
     }
 
     @PostMapping("/api/books/{bookId}/upload-images")
-    public ResponseEntity<PictureDtoList> uploadImages(@PathVariable Long book_id, HttpSession session, @RequestPart List<MultipartFile> files) throws IOException {
+    public ResponseEntity<PictureDtoList> uploadImages(@PathVariable Long bookId, HttpSession session, @RequestPart List<MultipartFile> files) throws IOException {
         Long userId = (Long) session.getAttribute("id");
-        userService.checkBookSeller(userId, book_id);
-        PictureDtoList pictureDtoList = bookService.uploadImages(book_id, userId, files);
+        userService.checkBookSeller(userId, bookId);
+        PictureDtoList pictureDtoList = bookService.uploadImages(bookId, userId, files);
         return ResponseEntity.ok(pictureDtoList);
     }
 
     @DeleteMapping("/api/books/{bookId}/upload-images")
-    public ResponseEntity<String> deleteImages(@PathVariable Long book_id, HttpSession session, @RequestBody PictureDto request) {
+    public ResponseEntity<String> deleteImages(@PathVariable Long bookId, HttpSession session, @RequestBody PictureDto request) {
         Long userId = (Long) session.getAttribute("id");
-        userService.checkBookSeller(userId, book_id);
+        userService.checkBookSeller(userId, bookId);
         bookService.deleteImages(request);
         return ResponseEntity.ok("ok");
 

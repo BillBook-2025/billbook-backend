@@ -1,10 +1,9 @@
 package BillBook_2025_backend.backend.service;
 
-import BillBook_2025_backend.backend.dto.BookPostRequestDto;
-import BillBook_2025_backend.backend.dto.PictureDto;
-import BillBook_2025_backend.backend.dto.PictureDtoList;
+import BillBook_2025_backend.backend.dto.*;
 import BillBook_2025_backend.backend.entity.*;
 import BillBook_2025_backend.backend.exception.BookNotFoundException;
+import BillBook_2025_backend.backend.exception.FaultAccessException;
 import BillBook_2025_backend.backend.exception.UnauthorizedException;
 import BillBook_2025_backend.backend.repository.BookRepository;
 import BillBook_2025_backend.backend.repository.LikeBookRepository;
@@ -18,9 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class BookService {
@@ -54,6 +55,7 @@ public class BookService {
         book.setIsbn(dto.getIsbn());
         //book.setCategory(dto.getCategory());
         book.setDescription(dto.getDescription());
+        book.setTime(LocalDateTime.now());
        // book.setTotal(dto.getTotal());
 
         List<Picture> pictures = new ArrayList<>();
@@ -68,21 +70,25 @@ public class BookService {
         pictureRepository.saveAll(pictures);
     }
 
-    public List<Book> findAllBooks(Long userId) {
+    public List<BookResponse> findAllBooks(Long userId) {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
         List<Book> bookList = bookRepository.findAll();
-        return bookList;
+        List<BookResponse> bookResponseList = new ArrayList<>();
+        for (Book book : bookList) {
+            bookResponseList.add(new BookResponse(book));
+        }
+        return bookResponseList;
 
 
     }
 
-    public Book getBookDetail(Long bookId, Long userId) {
+    public BookResponse getBookDetail(Long bookId, Long userId) {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
             Book book = bookRepository.findById(bookId).get();
-            return book;
+            return new BookResponse(book);
         }
     }
 
@@ -112,7 +118,7 @@ public class BookService {
     }
 
     @Transactional
-    public Book updateBookDetail(Book book, Long bookId, Long userId, List<String> deleteImages, List<MultipartFile> files) throws IOException {
+    public BookResponse updateBookDetail(BookPostRequestDto book, Long bookId, Long userId, List<String> deleteImages, List<MultipartFile> files) throws IOException {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 수정이 가능합니다.")); //로그인x일때
         if (bookRepository.findById(bookId).isEmpty()) { //책 게시물이 존재하지 않을 경우
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
@@ -125,7 +131,7 @@ public class BookService {
 
                     if (deleteImages != null && deleteImages.size() > 0) {
                         for (String deleteImage : deleteImages) {
-                            Picture picture = pictureRepository.findByUrl(deleteImage).orElseThrow(() -> new EntityNotFoundException("not found picture"));
+                            Picture picture = pictureRepository.findByBookAndUrl(findBook, deleteImage).orElseThrow(() -> new EntityNotFoundException("not found picture"));
                             findBook.getPicture().remove(picture);
                             s3UploadService.deleteImage(picture.getFilename());
                         }
@@ -138,15 +144,15 @@ public class BookService {
                     findBook.setAuthor(book.getAuthor());
                     findBook.setPublisher(book.getPublisher());
                     findBook.setIsbn(book.getIsbn());
-                    findBook.setCategory(book.getCategory());
+                    //findBook.setCategory(book.getCategory());
                     findBook.setDescription(book.getDescription());
-                    return findBook;
+                    return new BookResponse(findBook);
                 } else {
                     Book findBook = bookRepository.findById(bookId).get();
 
                     if (deleteImages != null && deleteImages.size() > 0) {
                         for (String deleteImage : deleteImages) {
-                            Picture picture = pictureRepository.findByUrl(deleteImage).orElseThrow(() -> new EntityNotFoundException("not found picture"));
+                            Picture picture = pictureRepository.findByBookAndUrl(findBook, deleteImage).orElseThrow(() -> new EntityNotFoundException("not found picture"));
                             findBook.getPicture().remove(picture);
                             s3UploadService.deleteImage(picture.getFilename());
                         }
@@ -159,7 +165,7 @@ public class BookService {
                     findBook.setAuthor(book.getAuthor());
                     findBook.setPublisher(book.getPublisher());
                     findBook.setIsbn(book.getIsbn());
-                    findBook.setCategory(book.getCategory());
+                    //findBook.setCategory(book.getCategory());
                     findBook.setDescription(book.getDescription());
 
                     List<Picture> pictureList = findBook.getPicture();
@@ -168,9 +174,7 @@ public class BookService {
                         Picture picture = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), findBook);
                         pictureList.add(picture);
                     }
-
-                    return findBook;
-
+                    return new BookResponse(findBook);
                 }
 
             }
@@ -185,7 +189,7 @@ public class BookService {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
             if (bookRepository.findById(bookId).get().getSeller().getId().equals(member.getId())) {
-                throw new AccessDeniedException("직접 올린 게시물은 대출할 수 없습니다.");
+                throw new FaultAccessException("직접 올린 게시물은 대출할 수 없습니다.");
             } else {
                 bookRepository.updateBuyerId(bookId, member, BookStatus.BORROWING);
             }
@@ -206,15 +210,57 @@ public class BookService {
     }
 
     @Transactional
-    public void returnBook(Long bookId, Long userId) {
+    public BookDto returnBook(Long bookId, Long userId) {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
         } else {
             if (!bookRepository.findById(bookId).get().getSeller().getId().equals(member.getId())) {
-                throw new AccessDeniedException("판매자만 반납완료를 처리할 수 있습니다");
+                throw new FaultAccessException("판매자만 반납완료를 처리할 수 있습니다");
             } else {
-                bookRepository.updateStatus(bookId, BookStatus.RETURNED); //반납처리 완료
+                Book book = bookRepository.findById(bookId).get();
+                if (book.getStatus().equals(BookStatus.RETURNED)){
+                    throw new FaultAccessException("이미 반납 처리된 게시물입니다.");
+                }
+                if (book.getBuyer() == null || book.getStatus().equals(BookStatus.PENDING)) {
+                    throw new FaultAccessException("거래전 게시물은 반납처리할 수 없습니다.");
+                }
+                book.setStatus(BookStatus.RETURNED); //반납처리 완료
+                book.setReturnTime(LocalDateTime.now());
+
+
+                Book newBook = Book.builder()
+                        .title(book.getTitle())
+                        .author(book.getAuthor())
+                        .bookPoint(book.getBookPoint())
+                        .content(book.getContent())
+                        .category(book.getCategory())
+                        .isbn(book.getIsbn())
+                        .publisher(book.getPublisher())
+                        .location(book.getLocation())
+                        .status(BookStatus.PENDING)
+                        .time(LocalDateTime.now())
+                        .description(book.getDescription())
+                        .seller(member)
+                        .build();
+
+                List<Picture> pictureList = new ArrayList<>();
+                for (Picture oldPic : book.getPicture()) {
+                    String originalFilename = oldPic.getFilename();
+                    int idx = originalFilename.indexOf("_");
+                    String cleanName = (idx != -1) ? originalFilename.substring(idx+1) : originalFilename;
+                    String uniqueName = UUID.randomUUID() + "_" + cleanName;
+
+                    Picture newPic = new Picture(uniqueName, oldPic.getUrl(), newBook);
+                    pictureList.add(newPic);
+                }
+                newBook.setPicture(pictureList);
+
+                Book save = bookRepository.save(newBook);
+
+                return new BookDto(save);
+
+
             }
         }
     }
