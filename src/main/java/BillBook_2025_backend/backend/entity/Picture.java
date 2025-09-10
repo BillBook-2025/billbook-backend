@@ -45,7 +45,6 @@ public class Picture {
         this.member = member;
     }
 
-<<<<<<< HEAD
     public Picture(String filename, String url, ChatRoom chatRoom, Member member) {
         this.filename = filename;
         this.url = url;
@@ -53,7 +52,6 @@ public class Picture {
         this.member = member;
     }
 
-=======
     // board 용임! 테스트 해보고 원래 위치로 옮ㄱ기자
     @ManyToOne
     @JoinColumn(name = "board_id")
@@ -64,5 +62,4 @@ public class Picture {
         this.url = url;
         this.board = board;
     }
->>>>>>> 000uk_boards
 }
