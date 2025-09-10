@@ -1,5 +1,6 @@
 package BillBook_2025_backend.backend.controller;
 
+import BillBook_2025_backend.backend.dto.BookResponse;
 import BillBook_2025_backend.backend.entity.Book;
 import BillBook_2025_backend.backend.exception.UnauthorizedException;
 import BillBook_2025_backend.backend.service.BookService;
@@ -27,7 +28,7 @@ public class MLController {
     }
 
     @GetMapping("/recommendations")
-    public ResponseEntity<List<Book>> getRecommendedBooks(HttpSession session) {
+    public ResponseEntity<List<BookResponse>> getRecommendedBooks(HttpSession session) {
         // 1. 로그인 여부 확인
         Object userIdObj = session.getAttribute("id");
         if (userIdObj == null) {
@@ -36,11 +37,11 @@ public class MLController {
         Long userId = (Long) userIdObj;
 
         // 2. DB에서 전체 책 조회
-        List<Book> allBooks = bookService.findAllBooks(userId);
+        List<BookResponse> allBooks = bookService.findAllBooks(userId);
 
         // 3. 임시 추천 로직: 최신 ID 기준으로 정렬 후 상위 2권 선택
-        List<Book> top2Books = allBooks.stream()
-                .sorted(Comparator.comparing(Book::getId).reversed())
+        List<BookResponse> top2Books = allBooks.stream()
+                .sorted(Comparator.comparing(BookResponse::getBookId).reversed()) // BookResponse 기준으로 수정
                 .limit(2)
                 .collect(Collectors.toList());
 
