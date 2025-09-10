@@ -52,4 +52,14 @@ public class Picture {
         this.member = member;
     }
 
+    // board 용임! 테스트 해보고 원래 위치로 옮ㄱ기자
+    @ManyToOne
+    @JoinColumn(name = "board_id")
+    private Board board;
+
+    public Picture(String filename, String url, Board board) {
+        this.filename = filename;
+        this.url = url;
+        this.board = board;
+    }
 }
