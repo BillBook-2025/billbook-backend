@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>STOMP Chatroom 테스트 클라이언트</title>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs"></script>
+</head>
+<body>
+<h2>STOMP Chatroom 테스트</h2>
+
+<!-- WebSocket 연결 -->
+<label>WebSocket URL: </label>
+<input type="text" id="wsUrl" value="ws://localhost:8080/ws" size="40">
+<button onclick="connect()">Connect</button>
+<button onclick="disconnect()">Disconnect</button>
+
+<!-- Chatroom ID -->
+<h3>Chatroom ID</h3>
+<input type="number" id="chatroomId" placeholder="예: 1" size="10">
+<button onclick="subscribe()">Subscribe</button>
+
+<!-- 메시지 보내기 -->
+<h3>메시지 보내기</h3>
+<input type="text" id="sendMessage" placeholder="보낼 메시지" size="40">
+<button onclick="sendMessage()">Send</button>
+
+<!-- 로그창 -->
+<h3>로그</h3>
+<pre id="log" style="background:#f4f4f4; padding:10px; border:1px solid #ccc; height:300px; overflow:auto;"></pre>
+
+<script>
+  let client;
+  let subscription;
+
+  function log(message) {
+    const logEl = document.getElementById("log");
+    logEl.textContent += message + "\n";
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function connect() {
+    const url = document.getElementById("wsUrl").value;
+    client = new StompJs.Client({
+      brokerURL: url,
+      debug: (str) => log(str),
+      reconnectDelay: 5000
+    });
+
+    client.onConnect = () => log("✅ Connected to " + url);
+    client.onWebSocketError = (err) => log("❌ WebSocket Error: " + err);
+
+    client.activate();
+  }
+
+  function disconnect() {
+    if (subscription) {
+      subscription.unsubscribe();
+      subscription = null;
+    }
+    if (client) {
+      client.deactivate();
+      log("🔌 Disconnected");
+    }
+  }
+
+  function subscribe() {
+    const chatroomId = document.getElementById("chatroomId").value;
+    if (!chatroomId) {
+      alert("Chatroom ID를 입력하세요");
+      return;
+    }
+
+    // 서버 convertAndSend 경로와 일치시키기: /topic/chatroom/{id}/chat
+    const destination = "/topic/chatroom/" + chatroomId + "/chat";
+
+    if (subscription) subscription.unsubscribe();
+
+    subscription = client.subscribe(destination, (msg) => {
+      log("📩 Received: " + msg.body);
+    });
+
+    log("📡 Subscribed to " + destination);
+  }
+
+  function sendMessage() {
+    const chatroomId = document.getElementById("chatroomId").value;
+    const message = document.getElementById("sendMessage").value;
+    const senderId = 2; // 테스트용 senderId
+    if (!chatroomId) { alert("Chatroom ID를 입력하세요"); return; }
+    if (!message) { alert("메시지를 입력하세요"); return; }
+
+    // MessageDto 최소 필드 맞춰 JSON 전송
+    const msgDto = {
+      chatRoomId: Number(chatroomId),
+      senderId: senderId,
+      message: message
+    };
+
+    client.publish({
+      destination: "/app/chatroom/" + chatroomId + "/chat",
+      body: JSON.stringify(msgDto),
+      headers: { "content-type": "application/json" }
+    });
+
+    log("📤 Sent JSON: " + JSON.stringify(msgDto));
+  }
+</script>
+</body>
+</html>
+

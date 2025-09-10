@@ -20,7 +20,7 @@ public class ChatStompController {
 
         Long senderId = messageDto.getSenderId();
         MessageDto saved = chatService.saveAndBuild(chatroomId, senderId, messageDto);
-
-        messagingTemplate.convertAndSend("/chatroom/" + chatroomId + "/chat", saved);
+        messagingTemplate.convertAndSend("/topic/chatroom/" + chatroomId + "/chat", saved);
+        //messagingTemplate.convertAndSend("/chatroom/" + chatroomId + "/chat", saved);
     }
 }

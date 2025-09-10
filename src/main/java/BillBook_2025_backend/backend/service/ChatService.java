@@ -28,10 +28,16 @@ public class ChatService {
 
     @Autowired
     MemberRepository memberRepository;
+    @Autowired
     BookRepository bookRepository;
+    @Autowired
     ChatRoomRepository chatRoomRepository;
+    @Autowired
     MessageRepository messageRepository;
+    @Autowired
     PictureRepository pictureRepository;
+
+
 
 
 

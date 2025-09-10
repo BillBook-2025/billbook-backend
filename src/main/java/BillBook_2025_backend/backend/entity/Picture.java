@@ -1,5 +1,6 @@
 package BillBook_2025_backend.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,14 +18,17 @@ public class Picture {
 
     @OneToOne
     @JoinColumn(name = "member_id")
+    @JsonIgnore
     private Member member;
 
     @ManyToOne
     @JoinColumn(name = "book_id")
+    @JsonIgnore
     private Book book;
 
     @ManyToOne
     @JoinColumn(name = "chatRoom_id")
+    @JsonIgnore
     private ChatRoom chatRoom;
 
     public Picture() {};

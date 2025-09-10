@@ -24,7 +24,7 @@ public class ChatRestController {
     private final S3UploadService s3UploadService;
 
     @PostMapping("/api/books/{bookId}/chatroom")  //보안??  //채팅방 열기 및 생성
-    public ResponseEntity<ChatRoomDto> openChatRoom(@PathVariable Long bookId, @PathVariable Long buyerId) {
+    public ResponseEntity<ChatRoomDto> openChatRoom(@PathVariable Long bookId, @RequestParam Long buyerId) {
         ChatRoom chatRoom = chatService.openChatRoom(bookId, buyerId);
         return ResponseEntity.ok(new ChatRoomDto(chatRoom));
     }
