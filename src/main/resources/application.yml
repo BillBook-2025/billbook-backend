@@ -24,5 +24,17 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
   # Optional: 서버 포트 변경 시
-  # server:
+  # server:.
   #   port: 8081
+cloud:
+  aws:
+    s3:
+      bucket: billbook-uploaded-files
+    credentials:
+      access-key:
+      secret-key:
+    region:
+      static: ap-southeast-2
+      auto: false
+    stack:
+      auto: false
