@@ -15,11 +15,11 @@ public class UserInfoDto {
     private String userId;
     private String password;
     private String email;
-    private Long points;
+    private Integer points;
     private double temperature;
     private String userName;
 
-    public UserInfoDto(Long points) {
+    public UserInfoDto(Integer points) {
         this.points = points;
     }
 
@@ -29,6 +29,6 @@ public class UserInfoDto {
         this.email = member.getEmail();
         this.temperature = member.getTemperature();
         this.userName = member.getUserName();
-        this.points = member.getPoints();
+        this.points = member.getUserPoints().getBalance();
     }
 }

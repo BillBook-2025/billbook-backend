@@ -44,6 +44,11 @@ public class UserService {
         }
 
         Member newMember = new Member(member.getUserId(), member.getPassword(), member.getEmail(), member.getUserName());
+        UserPoints userPoints = new UserPoints();
+        userPoints.setMember(member);
+        member.setUserPoints(userPoints);
+
+        memberRepository.save(member);
         return memberRepository.save(newMember);
     }
 
@@ -93,7 +98,7 @@ public class UserService {
                 .userName(member.getUserName())
                 .email(member.getEmail())
                 .temperature(member.getTemperature())
-                .points(member.getPoints())
+                .points(member.getUserPoints().getBalance())
                 .userId(member.getUserId())
                 .build();
         return userInfoDto;
@@ -138,7 +143,7 @@ public class UserService {
 
     public UserInfoDto getPoints(Long userId) {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("해당 유저가 존재하지 않습니다."));
-        UserInfoDto userInfoDto = new UserInfoDto(member.getPoints());
+        UserInfoDto userInfoDto = new UserInfoDto(member.getUserPoints().getBalance());
         return userInfoDto;
     }
 

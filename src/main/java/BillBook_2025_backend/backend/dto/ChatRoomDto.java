@@ -32,6 +32,8 @@ public class ChatRoomDto {
 
     private List<MessageDto> messages = new ArrayList<>();
 
+    private String lastMessage;
+
     public ChatRoomDto() {}
 
     public ChatRoomDto(ChatRoom chatRoom) {
@@ -44,5 +46,18 @@ public class ChatRoomDto {
         for (Message message : chatRoom.getMessages()) {
             this.messages.add(new MessageDto(message));
         }
+    }
+
+    public ChatRoomDto(ChatRoom chatRoom, String lastMessage) {
+        this.id = chatRoom.getId();
+        this.createdAt = chatRoom.getCreatedAt();
+        this.name = chatRoom.getName();
+        this.buyerId = chatRoom.getBuyer().getId();
+        this.sellerId = chatRoom.getSeller().getId();
+        this.bookId = chatRoom.getBook().getId();
+        for (Message message : chatRoom.getMessages()) {
+            this.messages.add(new MessageDto(message));
+        }
+        this.lastMessage = lastMessage;
     }
 }
