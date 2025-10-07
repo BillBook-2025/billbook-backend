@@ -16,9 +16,17 @@ public class Member {
     private String userId;
     private String password;
     private String email;
-    private Long points;
     private double temperature;
     private String userName;
+
+    //추가됨
+    private String realName;
+    private String phone;
+    private String address;
+    private String post_code;
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
+    private UserPoints userPoints;
 
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
     private Picture picture;
@@ -27,11 +35,11 @@ public class Member {
     private List<Search> search = new ArrayList<>();
 
     // 보낸 결제 목록
-    @OneToMany(mappedBy = "sender")
+    @OneToMany(mappedBy = "buyer")
     private List<Payment> sentPayments = new ArrayList<>();
 
     // 받은 결제 목록
-    @OneToMany(mappedBy = "receiver")
+    @OneToMany(mappedBy = "seller")
     private List<Payment> receivedPayments = new ArrayList<>();
 
     @OneToMany(mappedBy = "following")
@@ -60,7 +68,6 @@ public class Member {
         this.email = email;
         this.userName = username;
         this.temperature = 36.5;
-        this.points = 0L;
 
     }
 }

@@ -23,7 +23,7 @@ public class ChatRestController {
     private final ChatService chatService;
     private final S3UploadService s3UploadService;
 
-    @PostMapping("/api/books/{bookId}/chatroom")  //보안??  //채팅방 열기 및 생성
+    @PostMapping("/api/books/{bookId}/chatRoom")  //보안??  //채팅방 열기 및 생성
     public ResponseEntity<ChatRoomDto> openChatRoom(@PathVariable Long bookId, @RequestParam Long buyerId) {
         ChatRoom chatRoom = chatService.openChatRoom(bookId, buyerId);
         return ResponseEntity.ok(new ChatRoomDto(chatRoom));
@@ -43,7 +43,7 @@ public class ChatRestController {
         return ResponseEntity.ok("Deleted chat room");
     }
 
-    @GetMapping("/api/chatRooms/{userId}")
+    @GetMapping("/api/users/{userId}/chatRooms")
     public ResponseEntity<List<ChatRoomDto>> getChatRooms(@PathVariable Long userId) {
         List<ChatRoomDto> allChatRooms = chatService.getAllChatRooms(userId);
         return ResponseEntity.ok(allChatRooms);
@@ -58,7 +58,7 @@ public class ChatRestController {
     @PostMapping("/api/chatRooms/{chatRoomId}/deadline")
     public ResponseEntity<String> setDeadLine(@PathVariable Long chatRoomId, BookResponse deadLine) {
         chatService.setDeadLine(chatRoomId, deadLine);
-        return ResponseEntity.ok("complete set deadline");
+        return ResponseEntity.ok("반납 기한 설정 완료");
     }
 
     @PostMapping("/api/chatRooms/{chatRoomId}/picture")
@@ -67,9 +67,7 @@ public class ChatRestController {
         Long userId = (Long) session.getAttribute("id");
         PictureDto pictureResponse = chatService.sendPicture(pictureDto, chatRoomId, userId);
         return ResponseEntity.ok(pictureResponse);
-
     }
-
 
 
 }

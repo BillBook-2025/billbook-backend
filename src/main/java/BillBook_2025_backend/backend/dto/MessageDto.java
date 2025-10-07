@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MessageDto {
+    private Long id;
     private Long chatRoomId;
     private Long senderId;
     private String message;
@@ -18,6 +19,7 @@ public class MessageDto {
     private LocalDateTime sendAt;
 
     public MessageDto(Message message) {
+        this.id = message.getId();
         this.chatRoomId = message.getChatRoom().getId();
         this.senderId = message.getSender().getId();
         this.message = message.getMessage();

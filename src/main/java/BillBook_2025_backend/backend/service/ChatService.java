@@ -94,7 +94,9 @@ public class ChatService {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("not found member"));
         List<ChatRoomDto> responses = new ArrayList<>();
         for (ChatRoom chatRoom : chatRoomRepository.findByMember(member)) {
-            responses.add(new ChatRoomDto(chatRoom));
+            Optional<Message> lastMessageOpt = messageRepository.findFirstByChatRoomIdOrderBySendAtDesc(chatRoom.getId());
+            String lastMessage = lastMessageOpt.map(Message::getMessage).orElse("");
+            responses.add(new ChatRoomDto(chatRoom, lastMessage));
         }
         return responses;
 
