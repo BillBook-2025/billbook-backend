@@ -3,10 +3,7 @@ package BillBook_2025_backend.backend.service;
 import BillBook_2025_backend.backend.dto.*;
 import BillBook_2025_backend.backend.entity.*;
 import BillBook_2025_backend.backend.exception.AlreadyExistException;
-import BillBook_2025_backend.backend.repository.BookRepository;
-import BillBook_2025_backend.backend.repository.FollowRepository;
-import BillBook_2025_backend.backend.repository.LikeBookRepository;
-import BillBook_2025_backend.backend.repository.MemberRepository;
+import BillBook_2025_backend.backend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,14 +25,16 @@ public class UserService {
     private final BookRepository bookRepository;
     private final FollowRepository followRepository;
     private final S3UploadService s3UploadService;
+    private final PictureRepository pictureRepository;
 
     @Autowired
-    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository, S3UploadService s3UploadService) {
+    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository, S3UploadService s3UploadService, PictureRepository pictureRepository) {
         this.memberRepository = memberRepository;
         this.likeBookRepository = likeBookRepository;
         this.bookRepository = bookRepository;
         this.followRepository = followRepository;
         this.s3UploadService = s3UploadService;
+        this.pictureRepository = pictureRepository;
     }
 
     public Member signup(Member member) {
@@ -49,7 +48,7 @@ public class UserService {
         member.setUserPoints(userPoints);
 
         memberRepository.save(member);
-        return memberRepository.save(newMember);
+        return newMember;
     }
 
     public void delete(DeleteMemberDto request, Long memberId) {
@@ -62,7 +61,7 @@ public class UserService {
         }
     }
 
-    public Member login(MemberDto member) {
+    public MemberResponseDto login(MemberDto member) {
         if(!memberRepository.findByUserId(member.getUserId()).isPresent()) {
             throw new EntityNotFoundException("해당 아이디를 찾을 수 없습니다.");
         } else {
@@ -70,8 +69,15 @@ public class UserService {
             if (!finduser.getPassword().equals(member.getPassword())) {
                 throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
             }
+            MemberResponseDto responseDto = MemberResponseDto.builder()
+                    .id(finduser.getId())
+                    .email(finduser.getEmail())
+                    .username(finduser.getUserName())
+                    .profilePic(finduser.getPicture() != null ? finduser.getPicture().getUrl() : null)
+                    .temperature(finduser.getTemperature())
+                    .build();
 
-            return finduser;
+            return responseDto;
         }
     }
 
