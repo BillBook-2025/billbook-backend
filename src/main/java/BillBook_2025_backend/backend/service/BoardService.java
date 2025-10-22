@@ -79,7 +79,7 @@ public class BoardService {
     }
 
     // 게시글 등록
-    public BoardResponseDto create(BoardRequestDto dto, Long userId) {
+    public BoardResponseDto create(BoardRequestDto dto, Long userId, List<MultipartFile> files) throws IOException {
         Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
         // Member user = userRepository.findByUserId(userId)
@@ -94,6 +94,11 @@ public class BoardService {
         board.setCreatedAt(LocalDateTime.now());
 
         boardRepo.save(board);
+
+        if (files != null && !files.isEmpty()) {
+            uploadImages(board.getBoardId(), userId, files);
+        }
+
         return BoardResponseDto.fromEntity(board, 0, 0);
     }
 
@@ -107,7 +112,7 @@ public class BoardService {
     }
 
     // 게시글 수정
-    public BoardResponseDto update(Long boardId, BoardRequestDto dto, Long userId) {
+    public BoardResponseDto update(Long boardId, BoardRequestDto dto, Long userId, List<MultipartFile> files) throws IOException {
         Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
 
@@ -123,6 +128,10 @@ public class BoardService {
         board.setIsbn(dto.getIsbn());
         board.setContent(dto.getContent());
         boardRepo.save(board);
+
+        if (files != null && !files.isEmpty()) {
+            uploadImages(board.getBoardId(), userId, files);
+        }
 
         long likeCount = likeRepo.countByBoardId(boardId);
         long commentsCount = commentRepo.countByBoard_BoardId(board.getBoardId());
