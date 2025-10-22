@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 // ver.3
 @RestController
@@ -39,11 +40,11 @@ public class BoardController {
 
     // 게시글 등록 (FormData + JSON)
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<BoardResponseDto> postBoard(@RequestPart("dto") BoardRequestDto dto,
-                                                      @RequestPart(value = "files", required = false) List<MultipartFile> files,
+    public ResponseEntity<BoardResponseDto> postBoard(@RequestPart("boards") BoardRequestDto dto,
+                                                      @RequestPart(value = "newImages", required = false) List<MultipartFile> images,
                                                       HttpSession session) throws IOException {
         Long userId = getLoginUserId(session);
-        return ResponseEntity.ok(boardService.create(dto, userId, files));
+        return ResponseEntity.ok(boardService.create(dto, userId, images));
     }
 
     // 특정 게시글 조회
@@ -57,10 +58,11 @@ public class BoardController {
     @PatchMapping(value = "/{boardId}", consumes = {"multipart/form-data"})
     public ResponseEntity<BoardResponseDto> updateBoard(@PathVariable("boardId") Long boardId,
                                                         @RequestPart("dto") BoardRequestDto dto,
-                                                        @RequestPart(value = "files", required = false) List<MultipartFile> files,
+                                                        @RequestPart(value = "deleteImages", required = false) List<String> deleteImages,
+                                                        @RequestPart(value = "newImages", required = false) List<MultipartFile> images,
                                                         HttpSession session) throws IOException {
         Long userId = getLoginUserId(session);
-        return ResponseEntity.ok(boardService.update(boardId, dto, userId, files));
+        return ResponseEntity.ok(boardService.update(boardId, dto, userId, deleteImages, images));
     }
 
     // 게시글 삭제

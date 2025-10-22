@@ -79,7 +79,7 @@ public class BoardService {
     }
 
     // 게시글 등록
-    public BoardResponseDto create(BoardRequestDto dto, Long userId, List<MultipartFile> files) throws IOException {
+    public BoardResponseDto create(BoardRequestDto dto, Long userId, List<MultipartFile> images) throws IOException {
         Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
         // Member user = userRepository.findByUserId(userId)
@@ -95,8 +95,8 @@ public class BoardService {
 
         boardRepo.save(board);
 
-        if (files != null && !files.isEmpty()) {
-            uploadImages(board.getBoardId(), userId, files);
+        if (images != null && !images.isEmpty()) {
+            uploadImages(board.getBoardId(), userId, images);
         }
 
         return BoardResponseDto.fromEntity(board, 0, 0);
@@ -112,27 +112,38 @@ public class BoardService {
     }
 
     // 게시글 수정
-    public BoardResponseDto update(Long boardId, BoardRequestDto dto, Long userId, List<MultipartFile> files) throws IOException {
+    public BoardResponseDto update(Long boardId, BoardRequestDto dto, Long userId, List<String> deleteImages, List<MultipartFile> images) throws IOException {
+        // 1. 사용자 확인
         Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
 
+        // 2. 게시글 확인
         Board board = boardRepo.findById(boardId)
-            .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
 
+        // 3. 권한 확인
         if (!board.getUserId().equals(user.getUserId())) {
             throw new AccessDeniedException("수정 권한이 없습니다.");
         }
 
+        // 4. 게시글 정보 수정
         board.setTitle(dto.getTitle());
         board.setCategory(dto.getCategory());
         board.setIsbn(dto.getIsbn());
         board.setContent(dto.getContent());
         boardRepo.save(board);
 
-        if (files != null && !files.isEmpty()) {
-            uploadImages(board.getBoardId(), userId, files);
+        // 5. 삭제 요청된 이미지 처리
+        if (deleteImages != null && !deleteImages.isEmpty()) {
+            deleteImages(deleteImages, board.getBoardId(), userId); // 이미지 삭제 서비스 호출
         }
 
+        // 6. 새 이미지 업로드
+        if (images != null && !images.isEmpty()) {
+            uploadImages(board.getBoardId(), userId, images);
+        }
+
+        // 7. like, comment count 조회 후 DTO 변환
         long likeCount = likeRepo.countByBoardId(boardId);
         long commentsCount = commentRepo.countByBoard_BoardId(board.getBoardId());
         return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
@@ -269,21 +280,28 @@ public class BoardService {
         return response;
     }
 
-    public void deleteImages(PictureDto request, Long boardId, Long userId) {
+    public void deleteImages(List<String> filenames, Long boardId, Long userId) {
+        // 1. 사용자 확인
         Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
-        
+    
+        // 2. 게시글 확인
         Board board = boardRepo.findById(boardId)
                 .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
-                
+    
+        // 3. 권한 확인
         if (!board.getUserId().equals(user.getUserId())) {
             throw new AccessDeniedException("삭제 권한이 없습니다.");
         }
-
-        String filename = request.getFilename();
-        Picture picture = pictureRepository.findByFilename(filename)
-                .orElseThrow(() -> new EntityNotFoundException(filename + "가 존재하지 않습니다."));
-        pictureRepository.delete(picture);
-        s3UploadService.deleteImage(filename);
+    
+        // 4. 이미지 삭제 반복 처리
+        if (filenames != null && !filenames.isEmpty()) {
+            for (String filename : filenames) {
+                Picture picture = pictureRepository.findByFilename(filename)
+                        .orElseThrow(() -> new EntityNotFoundException(filename + "가 존재하지 않습니다."));
+                pictureRepository.delete(picture);
+                s3UploadService.deleteImage(filename); // S3에서도 삭제
+            }
+        }
     }
 }
