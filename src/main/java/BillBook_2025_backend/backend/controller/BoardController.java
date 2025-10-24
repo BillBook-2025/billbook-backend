@@ -57,7 +57,7 @@ public class BoardController {
     // 게시글 수정 (FormData + JSON)
     @PatchMapping(value = "/{boardId}", consumes = {"multipart/form-data"})
     public ResponseEntity<BoardResponseDto> updateBoard(@PathVariable("boardId") Long boardId,
-                                                        @RequestPart("dto") BoardRequestDto dto,
+                                                        @RequestPart("boards") BoardRequestDto dto,
                                                         @RequestPart(value = "deleteImages", required = false) List<String> deleteImages,
                                                         @RequestPart(value = "newImages", required = false) List<MultipartFile> images,
                                                         HttpSession session) throws IOException {
@@ -136,7 +136,7 @@ public class BoardController {
         return ResponseEntity.ok(results);
     }
 
-    @PostMapping("/{boardId}/like/upload-images")
+    @PostMapping("/{boardId}/upload-images")
     public ResponseEntity<PictureDtoList> uploadImages(@PathVariable("boardId") Long boardId,
                                                        HttpSession session,
                                                        @RequestPart List<MultipartFile> files) throws IOException {
@@ -145,12 +145,16 @@ public class BoardController {
         return ResponseEntity.ok(pictureDtoList);
     }
 
-    @DeleteMapping("/{boardId}/like/upload-images")
+    @DeleteMapping("/{boardId}/upload-images")
     public ResponseEntity<String> deleteImages(@PathVariable("boardId") Long boardId,
                                                HttpSession session,
-                                               @RequestBody PictureDto request) {
+                                               @RequestBody PictureDtoList pictureDtoList) {
         Long userId = getLoginUserId(session);
-        boardService.deleteImages(request, boardId, userId);
+        List<String> filenames = pictureDtoList.getPictures()
+                                       .stream()
+                                       .map(PictureDto::getFilename)
+                                       .toList();
+        boardService.deleteImages(filenames, boardId, userId);
         return ResponseEntity.ok("ok");
     }
 
