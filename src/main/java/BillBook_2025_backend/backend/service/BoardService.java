@@ -143,6 +143,7 @@ public class BoardService {
             for (String deleteImage : deleteImages) {
                 Picture picture = pictureRepo.findByBoardAndUrl(board, deleteImage).orElseThrow(() -> new EntityNotFoundException("not found picture"));
                 board.getPicture().remove(picture);
+                pictureRepo.delete(picture); // DB에서도 삭제
                 s3UploadService.deleteImage(picture.getFilename());
             }
         }
@@ -151,8 +152,13 @@ public class BoardService {
             List<Picture> pictures = new ArrayList<>();
             for (MultipartFile image : images) {
                 PictureDto pictureDto = s3UploadService.saveFile(image);
-                Picture picture = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), board);
-                pictures.add(picture);
+                Picture newPic = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), board);
+                pictures.add(newPic);
+                newPic.setBoard(board); // Pic에서.. ManytoOne으로 board랑 관계 맻어있잖아? 그 관계만 추가하도록 하면 되나봐
+            }
+            // board.setPicture(pictures); 일케 하면 이미지 추가가 아니라 기존 이미지 지우고 갈아끼우는 코드가 되버림
+            for (Picture pic : pictures) {
+                board.getPicture().add(pic); // 기존 컬렉션 유지, 추가만
             }
         }
 
