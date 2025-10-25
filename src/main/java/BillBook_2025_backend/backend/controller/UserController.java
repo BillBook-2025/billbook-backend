@@ -105,6 +105,14 @@ public class UserController {
         return ResponseEntity.ok(dealHistory);
     }
 
+    @PostMapping("/api/profile/{userId}/temperature")
+    public ResponseEntity<String> reflectFeedback(HttpSession session, @PathVariable Long userId, @RequestBody String feedback) {
+        Long id = (Long) session.getAttribute("id");
+        userService.checkPermission(id, userId);
+        userService.reflectFeedback(feedback, userId);
+        return ResponseEntity.ok("ok");
+    }
+
     @PostMapping("/api/profile/{userId}/image")
     public ResponseEntity<PictureDto> uploadProfilePicture(HttpSession session, @PathVariable Long userId, @RequestPart MultipartFile file) throws IOException {
         Long id = (Long) session.getAttribute("id");

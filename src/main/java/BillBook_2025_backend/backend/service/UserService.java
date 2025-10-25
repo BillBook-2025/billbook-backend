@@ -3,6 +3,7 @@ package BillBook_2025_backend.backend.service;
 import BillBook_2025_backend.backend.dto.*;
 import BillBook_2025_backend.backend.entity.*;
 import BillBook_2025_backend.backend.exception.AlreadyExistException;
+import BillBook_2025_backend.backend.exception.FaultAccessException;
 import BillBook_2025_backend.backend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.rmi.AlreadyBoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -276,5 +276,20 @@ public class UserService {
         DataResponse dataResponse = new DataResponse(bookListResponse, new Pagenation());  // Pagenation은 지금 공백임
         return dataResponse;
 
+    }
+
+    public void reflectFeedback(String feedback, Long userId) {
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("not found member"));
+        if (feedback.equals("good")) {
+            double temperature = member.getTemperature();
+            temperature += 1;
+            member.setTemperature(temperature);
+        } else if (feedback.equals("bad")) {
+            double temperature = member.getTemperature();
+            temperature -= 1;
+            member.setTemperature(temperature);
+        } else {
+            throw new FaultAccessException("잘못된 요청");
+        }
     }
 }
