@@ -47,25 +47,25 @@ public class BoardService {
     private final LikeBoardRepository likeRepo;
     private final MemberRepository userRepository;
     private final S3UploadService s3UploadService;
-    private final PictureRepository pictureRepository;
+    private final PictureRepository pictureRepo;
 
     public BoardService(BoardRepository boardRepo,
                         CommentRepository commentRepo,
                         LikeBoardRepository likeRepo,
                         MemberRepository userRepository,
                         S3UploadService s3UploadService,
-                        PictureRepository pictureRepository) {
+                        PictureRepository pictureRepo) {
         this.boardRepo = boardRepo;
         this.commentRepo = commentRepo;
         this.likeRepo = likeRepo;
         this.userRepository = userRepository;
         this.s3UploadService = s3UploadService;
-        this.pictureRepository = pictureRepository;
+        this.pictureRepo = pictureRepo;
     }
 
     // 전체 게시글 조회
     public List<BoardResponseDto> findAll() {    
-        return boardRepo.findAll().stream()
+        return boardRepo.findAll().stream() // stream 얘 걍 for문 같은거래 가독성 좋게하는
             .map(board -> {
                 long likeCount = likeRepo.countByBoardId(board.getBoardId());
 
@@ -79,7 +79,7 @@ public class BoardService {
     }
 
     // 게시글 등록
-    public BoardResponseDto create(BoardRequestDto dto, Long userId) {
+    public BoardResponseDto create(BoardRequestDto dto, Long userId, List<MultipartFile> images) throws IOException {
         Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
         // Member user = userRepository.findByUserId(userId)
@@ -93,7 +93,23 @@ public class BoardService {
         board.setUserId(user.getUserId());
         board.setCreatedAt(LocalDateTime.now());
 
+        // boardRepo.save(board); 아니 영욱님아;;;; Repo를 먼저 저장해놓고 이미지 업로드 하면 어찌하오;;;;
+        if (images != null && !images.isEmpty()) {
+            // uploadImages(board.getBoardId(), userId, images);
+            // uploadImages에... board랑 picture랑 관계를 맺는 코드가 있는데.. 
+            // save를 먼저 하면 그 관계가 메모리에만 저장됨 DB에 안가고
+            // 근데 save를 나중에 하자니... board 객체가 DB에 없어서 get 메소드 사용 모함
+            List<Picture> pictures = new ArrayList<>();
+            for (MultipartFile image : images) {
+                PictureDto pictureDto = s3UploadService.saveFile(image);
+                Picture picture = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), board);
+                pictures.add(picture);
+            }
+            board.setPicture(pictures);
+        } 
+          
         boardRepo.save(board);
+    
         return BoardResponseDto.fromEntity(board, 0, 0);
     }
 
@@ -107,12 +123,12 @@ public class BoardService {
     }
 
     // 게시글 수정
-    public BoardResponseDto update(Long boardId, BoardRequestDto dto, Long userId) {
+    public BoardResponseDto update(Long boardId, BoardRequestDto dto, Long userId, List<String> deleteImages, List<MultipartFile> images) throws IOException {
         Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
 
         Board board = boardRepo.findById(boardId)
-            .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
 
         if (!board.getUserId().equals(user.getUserId())) {
             throw new AccessDeniedException("수정 권한이 없습니다.");
@@ -122,8 +138,33 @@ public class BoardService {
         board.setCategory(dto.getCategory());
         board.setIsbn(dto.getIsbn());
         board.setContent(dto.getContent());
+
+        if (deleteImages != null && !deleteImages.isEmpty()) {
+            for (String deleteImage : deleteImages) {
+                Picture picture = pictureRepo.findByBoardAndUrl(board, deleteImage).orElseThrow(() -> new EntityNotFoundException("not found picture"));
+                board.getPicture().remove(picture);
+                pictureRepo.delete(picture); // DB에서도 삭제
+                s3UploadService.deleteImage(picture.getFilename());
+            }
+        }
+
+        if (images != null && !images.isEmpty()) {
+            List<Picture> pictures = new ArrayList<>();
+            for (MultipartFile image : images) {
+                PictureDto pictureDto = s3UploadService.saveFile(image);
+                Picture newPic = new Picture(pictureDto.getFilename(), pictureDto.getUrl(), board);
+                pictures.add(newPic);
+                newPic.setBoard(board); // Pic에서.. ManytoOne으로 board랑 관계 맻어있잖아? 그 관계만 추가하도록 하면 되나봐
+            }
+            // board.setPicture(pictures); 일케 하면 이미지 추가가 아니라 기존 이미지 지우고 갈아끼우는 코드가 되버림
+            for (Picture pic : pictures) {
+                board.getPicture().add(pic); // 기존 컬렉션 유지, 추가만
+            }
+        }
+
         boardRepo.save(board);
 
+        // like, comment count 조회 후 DTO 변환
         long likeCount = likeRepo.countByBoardId(boardId);
         long commentsCount = commentRepo.countByBoard_BoardId(board.getBoardId());
         return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
@@ -246,10 +287,11 @@ public class BoardService {
             .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
 
         if (!board.getUserId().equals(user.getUserId())) {
-            throw new AccessDeniedException("삭제 권한이 없습니다.");
+            throw new AccessDeniedException("권한이 없습니다.");
         }
 
         List<PictureDto> pictureDtos = new ArrayList<>();
+
         for (MultipartFile file : files) {
             PictureDto request = s3UploadService.saveFile(file);
             Picture picture = new Picture(request.getFilename(), request.getUrl(), board);
@@ -260,21 +302,28 @@ public class BoardService {
         return response;
     }
 
-    public void deleteImages(PictureDto request, Long boardId, Long userId) {
+    public void deleteImages(List<String> filenames, Long boardId, Long userId) {
+        // 1. 사용자 확인
         Member user = userRepository.findById(userId)
                 .orElseThrow(() -> new UnauthorizedException("존재하지 않는 사용자입니다."));
-        
+    
+        // 2. 게시글 확인
         Board board = boardRepo.findById(boardId)
                 .orElseThrow(() -> new BoardNotFoundException("게시글이 존재하지 않습니다."));
-                
+    
+        // 3. 권한 확인
         if (!board.getUserId().equals(user.getUserId())) {
             throw new AccessDeniedException("삭제 권한이 없습니다.");
         }
-
-        String filename = request.getFilename();
-        Picture picture = pictureRepository.findByFilename(filename)
-                .orElseThrow(() -> new EntityNotFoundException(filename + "가 존재하지 않습니다."));
-        pictureRepository.delete(picture);
-        s3UploadService.deleteImage(filename);
+    
+        // 4. 이미지 삭제 반복 처리
+        if (filenames != null && !filenames.isEmpty()) {
+            for (String filename : filenames) {
+                Picture picture = pictureRepo.findByFilename(filename)
+                        .orElseThrow(() -> new EntityNotFoundException(filename + "가 존재하지 않습니다."));
+                pictureRepo.delete(picture);
+                s3UploadService.deleteImage(filename); // S3에서도 삭제
+            }
+        }
     }
 }
