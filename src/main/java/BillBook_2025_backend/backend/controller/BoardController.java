@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +62,9 @@ public class BoardController {
                                                         @RequestPart(value = "deleteImages", required = false) List<String> deleteImages,
                                                         @RequestPart(value = "newImages", required = false) List<MultipartFile> images,
                                                         HttpSession session) throws IOException {
+        if (images == null) {
+            images = new ArrayList<>();
+        }
         Long userId = getLoginUserId(session);
         return ResponseEntity.ok(boardService.update(boardId, dto, userId, deleteImages, images));
     }
