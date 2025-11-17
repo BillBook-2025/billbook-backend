@@ -11,8 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import java.util.Map;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.io.FileWriter;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/ml")
@@ -35,7 +39,9 @@ public class MLController {
         Long userId = (Long) userIdObj;
         String userQuery = mlService.getBookQuery(userId);
 
-        String url = "http://3.34.1.69:8000/ml/search?query=" + UriUtils.encode(userQuery, StandardCharsets.UTF_8);
+        // String url = "http://3.34.1.69:8000/ml/search?query=" + UriUtils.encode(userQuery, StandardCharsets.UTF_8);
+        String url = "http://3.34.1.69:8000/ml/search?query=" + userQuery;
+        
         ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
         Map<String, Object> result = response.getBody();
 

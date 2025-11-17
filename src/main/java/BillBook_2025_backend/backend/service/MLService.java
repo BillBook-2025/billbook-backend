@@ -32,9 +32,8 @@ public class MLService {
     
         // BookResponse latestBook = books.get(0); // 최신순이라고 가정
         BookResponse latestBook = books.stream()
-            .sorted(Comparator.comparing(BookResponse::getReturnTime).reversed()) // 최신순으로 정렬
-            .findFirst()
-            .orElse(null); // 리스트가 비어있으면 null
+            .max(Comparator.comparing(BookResponse::getReturnTime))
+            .orElse(null);
 
         return String.format(
             "Title: %s Category: %s Description: %s",
