@@ -12,4 +12,5 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
    * 3. 최신순 정렬된 게시글 가져오기: List<Board> findAllByOrderByCreatedAtDesc();
    * 결론: 게시판 기능(검색, 필터링, 정렬 등) 필요하다 → 위처럼 findBy... 메서드 추가  */
   List<Board> findByTitleContainingOrContentContainingOrCategory(String titleKeyword, String contentKeyword, String category);
+  List<Board> findByUserId(long userId);
 }

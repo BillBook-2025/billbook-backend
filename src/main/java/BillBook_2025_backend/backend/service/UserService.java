@@ -1,21 +1,47 @@
 package BillBook_2025_backend.backend.service;
 
-import BillBook_2025_backend.backend.dto.*;
-import BillBook_2025_backend.backend.entity.*;
-import BillBook_2025_backend.backend.exception.AlreadyExistException;
-import BillBook_2025_backend.backend.exception.FaultAccessException;
-import BillBook_2025_backend.backend.repository.*;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import BillBook_2025_backend.backend.dto.BoardResponseDto;
+import BillBook_2025_backend.backend.dto.BookListResponse;
+import BillBook_2025_backend.backend.dto.BookResponse;
+import BillBook_2025_backend.backend.dto.DataResponse;
+import BillBook_2025_backend.backend.dto.DealHistory;
+import BillBook_2025_backend.backend.dto.DeleteMemberDto;
+import BillBook_2025_backend.backend.dto.FollowDto;
+import BillBook_2025_backend.backend.dto.MemberDto;
+import BillBook_2025_backend.backend.dto.MemberResponseDto;
+import BillBook_2025_backend.backend.dto.Pagenation;
+import BillBook_2025_backend.backend.dto.PictureDto;
+import BillBook_2025_backend.backend.dto.ProfileDto;
+import BillBook_2025_backend.backend.dto.UserInfoDto;
+import BillBook_2025_backend.backend.entity.Book;
+import BillBook_2025_backend.backend.entity.Follow;
+import BillBook_2025_backend.backend.entity.LikeBook;
+import BillBook_2025_backend.backend.entity.Member;
+import BillBook_2025_backend.backend.entity.Picture;
+import BillBook_2025_backend.backend.entity.UserPoints;
+import BillBook_2025_backend.backend.exception.AlreadyExistException;
+import BillBook_2025_backend.backend.exception.FaultAccessException;
+import BillBook_2025_backend.backend.repository.BoardRepository;
+import BillBook_2025_backend.backend.repository.BookRepository;
+import BillBook_2025_backend.backend.repository.CommentRepository;
+import BillBook_2025_backend.backend.repository.FollowRepository;
+import BillBook_2025_backend.backend.repository.LikeBoardRepository;
+import BillBook_2025_backend.backend.repository.LikeBookRepository;
+import BillBook_2025_backend.backend.repository.MemberRepository;
+import BillBook_2025_backend.backend.repository.PictureRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -23,18 +49,26 @@ public class UserService {
     private final MemberRepository memberRepository;
     private final LikeBookRepository likeBookRepository;
     private final BookRepository bookRepository;
+    private final BoardRepository boardRepository;
     private final FollowRepository followRepository;
     private final S3UploadService s3UploadService;
     private final PictureRepository pictureRepository;
+    private final LikeBoardRepository likeBoardRepository;
+    private final CommentRepository commentRepository;
 
     @Autowired
-    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository, S3UploadService s3UploadService, PictureRepository pictureRepository) {
+    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository, S3UploadService s3UploadService, PictureRepository pictureRepository, 
+    BoardRepository boardRepository, LikeBoardRepository likeBoardRepository, CommentRepository commentRepository) {
         this.memberRepository = memberRepository;
         this.likeBookRepository = likeBookRepository;
         this.bookRepository = bookRepository;
         this.followRepository = followRepository;
         this.s3UploadService = s3UploadService;
         this.pictureRepository = pictureRepository;
+        this.boardRepository = boardRepository;
+        this.likeBoardRepository = likeBoardRepository;
+        this.commentRepository = commentRepository;
+
     }
 
     public Member signup(Member member) {
@@ -276,6 +310,16 @@ public class UserService {
         DataResponse dataResponse = new DataResponse(bookListResponse, new Pagenation());  // Pagenation은 지금 공백임
         return dataResponse;
 
+    }
+
+    public List<BoardResponseDto> getBoardsList(Long userId) {
+        return boardRepository.findByUserId(userId).stream()
+            .map(board -> {
+                long likeCount = likeBoardRepository.countByBoardId(board.getBoardId());
+                long commentsCount = commentRepository.countByBoard_BoardId(board.getBoardId());
+                return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
+            })
+            .collect(Collectors.toList());
     }
 
     public void reflectFeedback(String feedback, Long userId) {

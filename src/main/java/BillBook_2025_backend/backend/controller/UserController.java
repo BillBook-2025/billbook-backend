@@ -132,4 +132,9 @@ public class UserController {
         DataResponse sellList = userService.getSellList(userId);
         return ResponseEntity.ok(sellList);
     }
+
+    @GetMapping("/api/profile/{userId}/boards")
+    public ResponseEntity<List<BoardResponseDto>> getBoardsList(HttpSession session, @PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getBoardsList(userId));
+    }
 }
