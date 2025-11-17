@@ -30,7 +30,11 @@ public class MLService {
             // return "Title: 샘플책 Category: 판타지 Description: 테스트용 더미데이터";
         }
     
-        BookResponse latestBook = books.get(0); // 최신순이라고 가정
+        // BookResponse latestBook = books.get(0); // 최신순이라고 가정
+        BookResponse latestBook = books.stream()
+            .sorted(Comparator.comparing(BookResponse::getReturnTime).reversed()) // 최신순으로 정렬
+            .findFirst()
+            .orElse(null); // 리스트가 비어있으면 null
 
         return String.format(
             "Title: %s Category: %s Description: %s",
