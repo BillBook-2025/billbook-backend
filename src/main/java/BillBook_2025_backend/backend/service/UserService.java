@@ -312,7 +312,11 @@ public class UserService {
 
     }
 
-    public List<BoardResponseDto> getBoardsList(Long userId) {
+    public List<BoardResponseDto> getBoardsList(Long id) {
+        String userId = memberRepository.findById(id)
+            .map(Member::getUserId) // Member 객체에서 userId 추출
+            .orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
+
         return boardRepository.findByUserId(userId).stream()
             .map(board -> {
                 long likeCount = likeBoardRepository.countByBoardId(board.getBoardId());
