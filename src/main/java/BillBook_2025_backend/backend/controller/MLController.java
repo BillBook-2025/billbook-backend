@@ -34,8 +34,9 @@ public class MLController {
         BookListResponse bookList = buyListResponse.getData();
 
         List<BookResponse> books = bookList.getBooks(); // 리스트 꺼내기
-            if (books == null || books.isEmpty()) {
-            throw new RuntimeException("구매 내역이 없습니다.");
+        if (books == null || books.isEmpty()) {
+            return "";
+            // return "Title: 샘플책 Category: 판타지 Description: 테스트용 더미데이터";
         }
 
         BookResponse latestBook = books.get(0); // 최신순이라고 가정
@@ -51,7 +52,7 @@ public class MLController {
     // -------------------------------
     // 2️⃣ FastAPI 호출
     // -------------------------------
-    @GetMapping("/search")
+    @GetMapping("/recommendations")
     public ResponseEntity<Map<String, Object>> searchML(HttpSession session) {
         Object userIdObj = session.getAttribute("id");
         if (userIdObj == null) {
@@ -61,7 +62,7 @@ public class MLController {
 
         String userQuery = getLatestBuyQuery(userId);
 
-        String url = "http://localhost:8000/ml/search?query=" + UriUtils.encode(userQuery, StandardCharsets.UTF_8);
+        String url = "http://3.34.1.69:8000/ml/search?query=" + UriUtils.encode(userQuery, StandardCharsets.UTF_8);
 
         ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
         Map<String, Object> result = response.getBody();
