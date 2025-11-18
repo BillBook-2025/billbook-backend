@@ -11,19 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import BillBook_2025_backend.backend.dto.BoardResponseDto;
-import BillBook_2025_backend.backend.dto.BookListResponse;
-import BillBook_2025_backend.backend.dto.BookResponse;
-import BillBook_2025_backend.backend.dto.DataResponse;
-import BillBook_2025_backend.backend.dto.DealHistory;
-import BillBook_2025_backend.backend.dto.DeleteMemberDto;
-import BillBook_2025_backend.backend.dto.FollowDto;
-import BillBook_2025_backend.backend.dto.MemberDto;
-import BillBook_2025_backend.backend.dto.MemberResponseDto;
-import BillBook_2025_backend.backend.dto.Pagenation;
-import BillBook_2025_backend.backend.dto.PictureDto;
-import BillBook_2025_backend.backend.dto.ProfileDto;
-import BillBook_2025_backend.backend.dto.UserInfoDto;
+import BillBook_2025_backend.backend.dto.*;
 import BillBook_2025_backend.backend.entity.Book;
 import BillBook_2025_backend.backend.entity.Follow;
 import BillBook_2025_backend.backend.entity.LikeBook;
@@ -57,8 +45,8 @@ public class UserService {
     private final CommentRepository commentRepository;
 
     @Autowired
-    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository, S3UploadService s3UploadService, PictureRepository pictureRepository, 
-    BoardRepository boardRepository, LikeBoardRepository likeBoardRepository, CommentRepository commentRepository) {
+    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository, S3UploadService s3UploadService, 
+    PictureRepository pictureRepository, BoardRepository boardRepository, LikeBoardRepository likeBoardRepository, CommentRepository commentRepository) {
         this.memberRepository = memberRepository;
         this.likeBookRepository = likeBookRepository;
         this.bookRepository = bookRepository;
