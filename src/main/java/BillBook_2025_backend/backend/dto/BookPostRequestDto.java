@@ -22,7 +22,7 @@ public class BookPostRequestDto {
     //private String category;
     private String description;
     //private Long total;
-    private BookCondition condition;
+    private BookCondition cond;
 
     private Long sellerId;  //빌려준 사람
     private Long bookPoint;
@@ -47,7 +47,7 @@ public class BookPostRequestDto {
         this.publisher = book.getPublisher();
         this.isbn = book.getIsbn();
         this.description = book.getDescription();
-        this.condition = book.getCondition();
+        this.cond = book.getCond();
 
     }
 }

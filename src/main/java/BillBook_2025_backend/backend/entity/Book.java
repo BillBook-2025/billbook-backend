@@ -23,7 +23,7 @@ public class Book {
     private LocalDateTime time;
     private String location; //자료형 나중에 체크
     private String content;
-    private BookCondition condition;
+    private BookCondition cond;
     private String address;
     private String latitude;
     private String longitude;

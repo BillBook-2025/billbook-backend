@@ -51,7 +51,7 @@ public class BookService {
         book.setTitle(dto.getTitle());
         book.setAuthor(dto.getAuthor());
         book.setPublisher(dto.getPublisher());
-        book.setCondition(dto.getCondition());
+        book.setCond(dto.getCond());
         book.setIsbn(dto.getIsbn());
         //book.setCategory(dto.getCategory());
         book.setDescription(dto.getDescription());
@@ -144,7 +144,7 @@ public class BookService {
                     }
 
                     findBook.setBookPoint(book.getBookPoint());
-                    findBook.setCondition(book.getCondition());
+                    findBook.setCond(book.getCond());
                     findBook.setContent(book.getContent());
                     findBook.setTitle(book.getTitle());
                     findBook.setAuthor(book.getAuthor());
@@ -171,7 +171,7 @@ public class BookService {
                     }
 
                     findBook.setBookPoint(book.getBookPoint());
-                    findBook.setCondition(book.getCondition());
+                    findBook.setCond(book.getCond());
                     findBook.setContent(book.getContent());
                     findBook.setTitle(book.getTitle());
                     findBook.setAuthor(book.getAuthor());
@@ -255,7 +255,7 @@ public class BookService {
                         .bookPoint(book.getBookPoint())
                         .content(book.getContent())
                         .category(book.getCategory())
-                        .condition(book.getCondition())
+                        .cond(book.getCond())
                         .isbn(book.getIsbn())
                         .publisher(book.getPublisher())
                         .location(book.getLocation())
