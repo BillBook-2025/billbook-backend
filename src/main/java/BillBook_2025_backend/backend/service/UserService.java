@@ -1,9 +1,12 @@
 package BillBook_2025_backend.backend.service;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import BillBook_2025_backend.backend.dto.*;
+import BillBook_2025_backend.backend.entity.*;
+import BillBook_2025_backend.backend.exception.AlreadyExistException;
+import BillBook_2025_backend.backend.exception.FaultAccessException;
+import BillBook_2025_backend.backend.repository.*;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -11,25 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import BillBook_2025_backend.backend.dto.*;
-import BillBook_2025_backend.backend.entity.Book;
-import BillBook_2025_backend.backend.entity.Follow;
-import BillBook_2025_backend.backend.entity.LikeBook;
-import BillBook_2025_backend.backend.entity.Member;
-import BillBook_2025_backend.backend.entity.Picture;
-import BillBook_2025_backend.backend.entity.UserPoints;
-import BillBook_2025_backend.backend.exception.AlreadyExistException;
-import BillBook_2025_backend.backend.exception.FaultAccessException;
-import BillBook_2025_backend.backend.repository.BoardRepository;
-import BillBook_2025_backend.backend.repository.BookRepository;
-import BillBook_2025_backend.backend.repository.CommentRepository;
-import BillBook_2025_backend.backend.repository.FollowRepository;
-import BillBook_2025_backend.backend.repository.LikeBoardRepository;
-import BillBook_2025_backend.backend.repository.LikeBookRepository;
-import BillBook_2025_backend.backend.repository.MemberRepository;
-import BillBook_2025_backend.backend.repository.PictureRepository;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -45,8 +33,8 @@ public class UserService {
     private final CommentRepository commentRepository;
 
     @Autowired
-    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository, S3UploadService s3UploadService, 
-    PictureRepository pictureRepository, BoardRepository boardRepository, LikeBoardRepository likeBoardRepository, CommentRepository commentRepository) {
+    public UserService(MemberRepository memberRepository, LikeBookRepository likeBookRepository, BookRepository bookRepository, FollowRepository followRepository, S3UploadService s3UploadService, PictureRepository pictureRepository, 
+    BoardRepository boardRepository, LikeBoardRepository likeBoardRepository, CommentRepository commentRepository) {
         this.memberRepository = memberRepository;
         this.likeBookRepository = likeBookRepository;
         this.bookRepository = bookRepository;
@@ -56,7 +44,6 @@ public class UserService {
         this.boardRepository = boardRepository;
         this.likeBoardRepository = likeBoardRepository;
         this.commentRepository = commentRepository;
-
     }
 
     public Member signup(Member member) {
@@ -300,20 +287,6 @@ public class UserService {
 
     }
 
-    public List<BoardResponseDto> getBoardsList(Long id) {
-        String userId = memberRepository.findById(id)
-            .map(Member::getUserId) // Member 객체에서 userId 추출
-            .orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
-
-        return boardRepository.findByUserId(userId).stream()
-            .map(board -> {
-                long likeCount = likeBoardRepository.countByBoardId(board.getBoardId());
-                long commentsCount = commentRepository.countByBoard_BoardId(board.getBoardId());
-                return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
-            })
-            .collect(Collectors.toList());
-    }
-
     public void reflectFeedback(String feedback, Long userId) {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("not found member"));
         if (feedback.equals("good")) {
@@ -341,7 +314,19 @@ public class UserService {
         } else {
             throw new FaultAccessException("위치 정보가 제대로 입력되지 않음");
         }
+    }
+    
+    public List<BoardResponseDto> getBoardsList(Long id) {
+        String userId = memberRepository.findById(id)
+            .map(Member::getUserId) // Member 객체에서 userId 추출
+            .orElseThrow(() -> new RuntimeException("Member not found with id: " + id));
 
-
+        return boardRepository.findByUserId(userId).stream()
+            .map(board -> {
+                long likeCount = likeBoardRepository.countByBoardId(board.getBoardId());
+                long commentsCount = commentRepository.countByBoard_BoardId(board.getBoardId());
+                return BoardResponseDto.fromEntity(board, likeCount, commentsCount);
+            })
+            .collect(Collectors.toList());
     }
 }
