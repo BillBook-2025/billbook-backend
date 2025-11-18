@@ -102,9 +102,9 @@ public class BookController {
     }
 
     @PostMapping("/api/books/{bookId}/existing")
-    public ResponseEntity<BookDto> returnBook(@PathVariable Long bookId, HttpSession session) {
+    public ResponseEntity<BookResponse> returnBook(@PathVariable Long bookId, HttpSession session) {
         Long userId = (Long) session.getAttribute("id");
-        BookDto bookResponse = bookService.returnBook(bookId, userId);
+        BookResponse bookResponse = bookService.returnBook(bookId, userId);
         return ResponseEntity.ok(bookResponse);
     }
 
@@ -123,6 +123,13 @@ public class BookController {
         bookService.deleteImages(request);
         return ResponseEntity.ok("ok");
 
+    }
+
+    @PostMapping("/api/books/search")
+    public ResponseEntity<List<BookResponse>> searchBooks(@RequestParam String keyword, HttpSession session){
+        Long userId = (Long) session.getAttribute("id");
+        List<BookResponse> bookListResponse = bookService.searchBooks(keyword, userId);
+        return ResponseEntity.ok(bookListResponse);
     }
 
 

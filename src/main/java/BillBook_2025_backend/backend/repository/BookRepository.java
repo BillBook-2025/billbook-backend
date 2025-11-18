@@ -30,4 +30,6 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     void updateBuyerId(@Param("id") Long id, @Param("buyer") Member buyer, @Param("status") BookStatus status);
 
 
+    @Query("select b from Book b where b.title like concat('%', :keyword, '%')")
+    List<Book> searchBooksByKeyword(@Param("keyword") String keyword);
 }

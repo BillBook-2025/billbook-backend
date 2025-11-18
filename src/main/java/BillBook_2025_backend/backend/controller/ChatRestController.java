@@ -29,7 +29,7 @@ public class ChatRestController {
         return ResponseEntity.ok(new ChatRoomDto(chatRoom));
     }
 
-    @GetMapping("/api/chatRooms/{chatRoomId}/messages") //대화 내용 불러오기
+    @GetMapping("/api/chatRoom/{chatRoomId}/messages") //대화 내용 불러오기
     public ResponseEntity<Page<MessageDto>> history(@PathVariable Long chatRoomId,
                                  @RequestParam(defaultValue = "0") int page,
                                  @RequestParam(defaultValue = "30") int size) {
@@ -37,19 +37,19 @@ public class ChatRestController {
         return ResponseEntity.ok(messageHistory);
     }
 
-    @DeleteMapping("/api/chatRooms/{chatRoomId}")
+    @DeleteMapping("/api/chatRoom/{chatRoomId}")
     public ResponseEntity<String> deleteChatRoom(@PathVariable Long chatRoomId) {
         chatService.deleteChatRoom(chatRoomId);
         return ResponseEntity.ok("Deleted chat room");
     }
 
-    @GetMapping("/api/users/{userId}/chatRooms")
+    @GetMapping("/api/users/{userId}/chatRoom")
     public ResponseEntity<List<ChatRoomDto>> getChatRooms(@PathVariable Long userId) {
         List<ChatRoomDto> allChatRooms = chatService.getAllChatRooms(userId);
         return ResponseEntity.ok(allChatRooms);
     }
 
-    @GetMapping("/api/chatRooms/{chatRoomId}/deadline")
+    @GetMapping("/api/chatRoom/{chatRoomId}/deadline")
     public ResponseEntity<BookResponse> getDeadLine(@PathVariable Long chatRoomId) {
         BookResponse deadLine = chatService.getDeadLine(chatRoomId);
         return ResponseEntity.ok(deadLine);

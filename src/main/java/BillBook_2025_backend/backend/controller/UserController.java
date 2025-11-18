@@ -132,4 +132,14 @@ public class UserController {
         DataResponse sellList = userService.getSellList(userId);
         return ResponseEntity.ok(sellList);
     }
+
+    @PostMapping("/api/locate/{userId}")
+    public ResponseEntity<String> setLocation(HttpSession session, @PathVariable Long userId, LocationDto locate) {
+        Long id = (Long) session.getAttribute("id");
+        userService.checkPermission(id, userId);
+        userService.setLocation(userId, locate);
+        return ResponseEntity.ok("ok");
+    }
+
+
 }

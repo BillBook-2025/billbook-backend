@@ -46,17 +46,23 @@ public class BookService {
         Book book = new Book();
         book.setSeller(member);
         book.setBookPoint(dto.getBookPoint());
-        book.setLocation(dto.getLocation());
         book.setStatus(BookStatus.PENDING);
         book.setContent(dto.getContent());
         book.setTitle(dto.getTitle());
         book.setAuthor(dto.getAuthor());
         book.setPublisher(dto.getPublisher());
+        book.setCondition(dto.getCondition());
         book.setIsbn(dto.getIsbn());
         //book.setCategory(dto.getCategory());
         book.setDescription(dto.getDescription());
         book.setTime(LocalDateTime.now());
        // book.setTotal(dto.getTotal());
+        book.setAddress(dto.getLocate().getAddress());
+        book.setLatitude(dto.getLocate().getLatitude());
+        book.setLongitude(dto.getLocate().getLongitude());
+        book.setRegionLevel1(dto.getLocate().getRegionLevel1());
+        book.setRegionLevel2(dto.getLocate().getRegionLevel2());
+        book.setRegionLevel3(dto.getLocate().getRegionLevel3());
 
         List<Picture> pictures = new ArrayList<>();
         for (MultipartFile file : files) {
@@ -138,12 +144,18 @@ public class BookService {
                     }
 
                     findBook.setBookPoint(book.getBookPoint());
-                    findBook.setLocation(book.getLocation());
+                    findBook.setCondition(book.getCondition());
                     findBook.setContent(book.getContent());
                     findBook.setTitle(book.getTitle());
                     findBook.setAuthor(book.getAuthor());
                     findBook.setPublisher(book.getPublisher());
                     findBook.setIsbn(book.getIsbn());
+                    findBook.setAddress(book.getLocate().getAddress());
+                    findBook.setLatitude(book.getLocate().getLatitude());
+                    findBook.setLongitude(book.getLocate().getLongitude());
+                    findBook.setRegionLevel1(book.getLocate().getRegionLevel1());
+                    findBook.setRegionLevel2(book.getLocate().getRegionLevel2());
+                    findBook.setRegionLevel3(book.getLocate().getRegionLevel3());
                     //findBook.setCategory(book.getCategory());
                     findBook.setDescription(book.getDescription());
                     return new BookResponse(findBook);
@@ -159,7 +171,7 @@ public class BookService {
                     }
 
                     findBook.setBookPoint(book.getBookPoint());
-                    findBook.setLocation(book.getLocation());
+                    findBook.setCondition(book.getCondition());
                     findBook.setContent(book.getContent());
                     findBook.setTitle(book.getTitle());
                     findBook.setAuthor(book.getAuthor());
@@ -167,6 +179,12 @@ public class BookService {
                     findBook.setIsbn(book.getIsbn());
                     //findBook.setCategory(book.getCategory());
                     findBook.setDescription(book.getDescription());
+                    findBook.setAddress(book.getLocate().getAddress());
+                    findBook.setLatitude(book.getLocate().getLatitude());
+                    findBook.setLongitude(book.getLocate().getLongitude());
+                    findBook.setRegionLevel1(book.getLocate().getRegionLevel1());
+                    findBook.setRegionLevel2(book.getLocate().getRegionLevel2());
+                    findBook.setRegionLevel3(book.getLocate().getRegionLevel3());
 
                     List<Picture> pictureList = findBook.getPicture();
                     for (MultipartFile file : files) {
@@ -212,7 +230,7 @@ public class BookService {
     }
 
     @Transactional
-    public BookDto returnBook(Long bookId, Long userId) {
+    public BookResponse returnBook(Long bookId, Long userId) {
         Member member = memberRepository.findById(userId).orElseThrow(() -> new UnauthorizedException("로그인한 사용자만 이용이 가능합니다."));
         if (bookRepository.findById(bookId).isEmpty()) {
             throw new BookNotFoundException("해당 책이 존재하지 않습니다.");
@@ -237,10 +255,17 @@ public class BookService {
                         .bookPoint(book.getBookPoint())
                         .content(book.getContent())
                         .category(book.getCategory())
+                        .condition(book.getCondition())
                         .isbn(book.getIsbn())
                         .publisher(book.getPublisher())
                         .location(book.getLocation())
                         .status(BookStatus.PENDING)
+                        .address(book.getAddress())
+                        .latitude(book.getLatitude())
+                        .longitude(book.getLongitude())
+                        .regionLevel1(book.getRegionLevel1())
+                        .regionLevel2(book.getRegionLevel2())
+                        .regionLevel3(book.getRegionLevel3())
                         .time(LocalDateTime.now())
                         .description(book.getDescription())
                         .seller(member)
@@ -260,7 +285,7 @@ public class BookService {
 
                 Book save = bookRepository.save(newBook);
 
-                return new BookDto(save);
+                return new BookResponse(save);
 
 
             }
@@ -287,5 +312,14 @@ public class BookService {
                 .orElseThrow(() -> new EntityNotFoundException(filename + "가 존재하지 않습니다."));
         pictureRepository.delete(picture);
         s3UploadService.deleteImage(filename);
+    }
+
+    public List<BookResponse> searchBooks(String keyword, Long userId) {
+        List<BookResponse> bookList = new ArrayList<>();
+        for (Book book : bookRepository.searchBooksByKeyword(keyword)) {
+            bookList.add(new BookResponse(book));
+        }
+        return bookList;
+
     }
 }

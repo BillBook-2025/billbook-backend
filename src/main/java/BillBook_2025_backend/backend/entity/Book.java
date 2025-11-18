@@ -1,6 +1,7 @@
 package BillBook_2025_backend.backend.entity;
 
 
+import BillBook_2025_backend.backend.dto.LocationDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,6 +23,13 @@ public class Book {
     private LocalDateTime time;
     private String location; //자료형 나중에 체크
     private String content;
+    private BookCondition condition;
+    private String address;
+    private String latitude;
+    private String longitude;
+    private String regionLevel1;
+    private String regionLevel2;
+    private String regionLevel3;
     //책상태 양호한지 그런 상태 나타내는 변수
     private BookStatus status;
     private String title;

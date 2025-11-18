@@ -292,4 +292,20 @@ public class UserService {
             throw new FaultAccessException("잘못된 요청");
         }
     }
+
+    public void setLocation(Long userId, LocationDto locate) {
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("not found member"));
+        if(locate.getAddress() != null && locate.getLatitude() != null && locate.getLongitude() != null) {
+            member.setAddress(locate.getAddress());
+            member.setLatitude(locate.getLatitude());
+            member.setLongitude(locate.getLongitude());
+            member.setRegionLevel1(locate.getRegionLevel1());
+            member.setRegionLevel2(locate.getRegionLevel2());
+            member.setRegionLevel3(locate.getRegionLevel3());
+        } else {
+            throw new FaultAccessException("위치 정보가 제대로 입력되지 않음");
+        }
+
+
+    }
 }

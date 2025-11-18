@@ -22,8 +22,14 @@ public class Member {
     //추가됨
     private String realName;
     private String phone;
-    private String address;
     private String post_code;
+
+    private String address;
+    private String latitude;
+    private String longitude;
+    private String regionLevel1;
+    private String regionLevel2;
+    private String regionLevel3;
 
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
     private UserPoints userPoints;

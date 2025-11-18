@@ -1,6 +1,7 @@
 package BillBook_2025_backend.backend.dto;
 
 import BillBook_2025_backend.backend.entity.Book;
+import BillBook_2025_backend.backend.entity.BookCondition;
 import BillBook_2025_backend.backend.entity.BookStatus;
 import BillBook_2025_backend.backend.entity.Picture;
 import lombok.AllArgsConstructor;
@@ -22,7 +23,6 @@ public class BookResponse {
     private Long bookPoint;
     private List<PictureDto> bookPic = new ArrayList<>();;  //자료형 나중에 체크
     private LocalDateTime time;
-    private String location; //자료형 나중에 체크
     private String content;
     //책상태 양호한지 그런 상태 나타내는 변수
     private BookStatus status;
@@ -35,7 +35,11 @@ public class BookResponse {
     private Long total;  //이게 뭐였지 좋아요수??였나
     private LocalDateTime returnTime;
     private Long sellerId;
+    private BookCondition condition;
     private Long buyerId;
+
+    private LocationDto locate;
+
 
     public BookResponse(LocalDateTime returnTime) {
         this.returnTime = returnTime;
@@ -57,7 +61,6 @@ public class BookResponse {
             this.buyerId = book.getBuyer().getId();
         }
         this.time = book.getTime();
-        this.location = book.getLocation();
         this.content = book.getContent();
         this.status = book.getStatus();
         this.title = book.getTitle();
@@ -67,6 +70,9 @@ public class BookResponse {
         this.category = book.getCategory();
         this.description = book.getDescription();
         this.total = book.getTotal();
+        this.condition = book.getCondition();
+        LocationDto locateDto = new LocationDto(book.getAddress(), book.getLatitude(), book.getLongitude(), book.getRegionLevel1(), book.getRegionLevel2(), book.getRegionLevel3());
+        this.locate = locateDto;
     }
 
 

@@ -1,6 +1,7 @@
 package BillBook_2025_backend.backend.dto;
 
 import BillBook_2025_backend.backend.entity.Book;
+import BillBook_2025_backend.backend.entity.BookCondition;
 import BillBook_2025_backend.backend.entity.Picture;
 import lombok.*;
 
@@ -21,12 +22,14 @@ public class BookPostRequestDto {
     //private String category;
     private String description;
     //private Long total;
+    private BookCondition condition;
 
     private Long sellerId;  //빌려준 사람
     private Long bookPoint;
     private List<PictureDto> bookPic = new ArrayList<>();  //자료형 나중에 체크
-    private String location; //자료형 나중에 체크
     private String content;
+    private LocationDto locate;
+
 
     public BookPostRequestDto(Book book) {
         this.bookPoint = book.getBookPoint();
@@ -38,12 +41,13 @@ public class BookPostRequestDto {
 
         }
         this.sellerId = book.getSeller().getId();
-        this.location = book.getLocation();
         this.content = book.getContent();
         this.title = book.getTitle();
         this.author = book.getAuthor();
         this.publisher = book.getPublisher();
         this.isbn = book.getIsbn();
         this.description = book.getDescription();
+        this.condition = book.getCondition();
+
     }
 }
