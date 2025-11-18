@@ -141,5 +141,8 @@ public class UserController {
         return ResponseEntity.ok("ok");
     }
 
-
+    @GetMapping("/api/profile/{userId}/boards")
+    public ResponseEntity<List<BoardResponseDto>> getBoardsList(HttpSession session, @PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getBoardsList(userId));
+    }
 }
