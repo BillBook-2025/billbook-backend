@@ -35,7 +35,7 @@ public class BookResponse {
     private Long total;  //이게 뭐였지 좋아요수??였나
     private LocalDateTime returnTime;
     private Long sellerId;
-    private BookCondition condition;
+    private BookCondition cond;
     private Long buyerId;
 
     private LocationDto locate;
@@ -70,7 +70,7 @@ public class BookResponse {
         this.category = book.getCategory();
         this.description = book.getDescription();
         this.total = book.getTotal();
-        this.condition = book.getCondition();
+        this.cond = book.getCond();
         LocationDto locateDto = new LocationDto(book.getAddress(), book.getLatitude(), book.getLongitude(), book.getRegionLevel1(), book.getRegionLevel2(), book.getRegionLevel3());
         this.locate = locateDto;
     }
